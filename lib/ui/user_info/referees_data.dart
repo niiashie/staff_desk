@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:leave_desk/app/locator.dart';
 import 'package:leave_desk/constants/colors.dart';
+import 'package:leave_desk/services/app_service.dart';
 import 'package:leave_desk/shared/custom_button.dart';
 import 'package:leave_desk/shared/custom_form_field.dart';
 
 class RefereesData extends StatefulWidget {
-  final void Function(Map<String, dynamic> Function())? onFormReady;
+  final void Function(Map<String, dynamic> Function(), bool Function())?
+      onFormReady;
   final VoidCallback? onNext;
   final VoidCallback? onPrevious;
   final bool isLoading;
@@ -25,6 +28,11 @@ class RefereesData extends StatefulWidget {
 
 class _RefereesDataState extends State<RefereesData> {
   final _formKey = GlobalKey<FormState>();
+  final appService = locator<AppService>();
+  bool _hasDataChanged = false;
+
+  // Store original values for comparison
+  Map<String, dynamic>? _originalData;
 
   // Controllers for main fields
   final TextEditingController _numberOfRefereesController =
@@ -91,12 +99,24 @@ class _RefereesDataState extends State<RefereesData> {
 
       // Create new controllers
       for (int i = 0; i < number; i++) {
+        final nameController = TextEditingController();
+        final occupationController = TextEditingController();
+        final addressController = TextEditingController();
+
+        // Add listeners to new controllers
+        nameController.addListener(() => _checkForChanges());
+        occupationController.addListener(() => _checkForChanges());
+        addressController.addListener(() => _checkForChanges());
+
         _refereesControllers.add({
-          'name': TextEditingController(),
-          'occupation': TextEditingController(),
-          'address': TextEditingController(),
+          'name': nameController,
+          'occupation': occupationController,
+          'address': addressController,
         });
       }
+
+      // Check for changes after updating referees count
+      _checkForChanges();
     });
   }
 
@@ -119,30 +139,102 @@ class _RefereesDataState extends State<RefereesData> {
   @override
   void initState() {
     super.initState();
-    _loadInitialData();
-    // Pass the getPostBody method to parent widget
+    // Prefill form with existing referees data if available
+    _prefillRefereesData();
+    // Store original data for comparison
+    _storeOriginalData();
+    // Add listeners to detect changes
+    _addChangeListeners();
+    // Pass the getPostBody and shouldSubmitData methods to parent widget
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.onFormReady?.call(getPostBody);
+      widget.onFormReady?.call(getPostBody, shouldSubmitData);
     });
   }
 
-  void _loadInitialData() {
-    if (widget.initialData != null) {
-      final referees = widget.initialData!['referees'] as List<dynamic>?;
-      if (referees != null && referees.isNotEmpty) {
-        _numberOfRefereesController.text = referees.length.toString();
-        _numberOfReferees = referees.length;
+  // Prefill form with existing referees data
+  void _prefillRefereesData() {
+    final referees = appService.currentUser?.referees;
+    if (referees != null && referees.isNotEmpty) {
+      _numberOfRefereesController.text = referees.length.toString();
+      _numberOfReferees = referees.length;
 
-        for (int i = 0; i < referees.length; i++) {
-          final referee = referees[i] as Map<String, dynamic>;
-          _refereesControllers.add({
-            'name': TextEditingController(text: referee['name'] ?? ''),
-            'occupation': TextEditingController(text: referee['occupation'] ?? ''),
-            'address': TextEditingController(text: referee['address'] ?? ''),
-          });
+      // Create controllers for each referee
+      for (int i = 0; i < referees.length; i++) {
+        _refereesControllers.add({
+          'name': TextEditingController(text: referees[i].name ?? ''),
+          'occupation':
+              TextEditingController(text: referees[i].occupation ?? ''),
+          'address': TextEditingController(text: referees[i].address ?? ''),
+        });
+      }
+    }
+  }
+
+  // Store original data
+  void _storeOriginalData() {
+    _originalData = getPostBody();
+  }
+
+  // Add change listeners to all controllers
+  void _addChangeListeners() {
+    void listener() => _checkForChanges();
+    _numberOfRefereesController.addListener(listener);
+
+    // Add listeners for referees controllers
+    for (var controllers in _refereesControllers) {
+      controllers['name']?.addListener(listener);
+      controllers['occupation']?.addListener(listener);
+      controllers['address']?.addListener(listener);
+    }
+  }
+
+  // Check if data has changed
+  void _checkForChanges() {
+    if (_originalData == null) return;
+
+    final currentData = getPostBody();
+    bool hasChanged = false;
+
+    // Compare referees array
+    final originalReferees =
+        _originalData!['referees'] as List<Map<String, String>>;
+    final currentReferees = currentData['referees'] as List<Map<String, String>>;
+
+    if (originalReferees.length != currentReferees.length) {
+      hasChanged = true;
+    } else {
+      for (int i = 0; i < originalReferees.length; i++) {
+        if (originalReferees[i]['name'] != currentReferees[i]['name'] ||
+            originalReferees[i]['occupation'] !=
+                currentReferees[i]['occupation'] ||
+            originalReferees[i]['address'] != currentReferees[i]['address']) {
+          hasChanged = true;
+          break;
         }
       }
     }
+
+    if (hasChanged != _hasDataChanged) {
+      setState(() {
+        _hasDataChanged = hasChanged;
+      });
+    }
+  }
+
+  // Check if data has changed and should be submitted
+  bool shouldSubmitData() {
+    debugPrint(
+      'shouldSubmitData: referees exist = ${appService.currentUser?.referees != null && appService.currentUser!.referees!.isNotEmpty}, hasDataChanged = $_hasDataChanged',
+    );
+    // If referees already exist and nothing changed, skip submission
+    if (appService.currentUser?.referees != null &&
+        appService.currentUser!.referees!.isNotEmpty &&
+        !_hasDataChanged) {
+      debugPrint('shouldSubmitData: returning false (no changes)');
+      return false;
+    }
+    debugPrint('shouldSubmitData: returning true (should submit)');
+    return true;
   }
 
   @override

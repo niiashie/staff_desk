@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:leave_desk/app/locator.dart';
 import 'package:leave_desk/constants/colors.dart';
+import 'package:leave_desk/services/app_service.dart';
 import 'package:leave_desk/shared/custom_button.dart';
 import 'package:leave_desk/shared/custom_form_field.dart';
 
 class BeneficiaryData extends StatefulWidget {
-  final void Function(Map<String, dynamic> Function())? onFormReady;
+  final void Function(Map<String, dynamic> Function(), bool Function())?
+      onFormReady;
   final VoidCallback? onNext;
   final VoidCallback? onPrevious;
   final bool isLoading;
@@ -25,6 +28,11 @@ class BeneficiaryData extends StatefulWidget {
 
 class _BeneficiaryDataState extends State<BeneficiaryData> {
   final _formKey = GlobalKey<FormState>();
+  final appService = locator<AppService>();
+  bool _hasDataChanged = false;
+
+  // Store original values for comparison
+  Map<String, dynamic>? _originalData;
 
   // Controllers for main fields
   final TextEditingController _numberOfBeneficiariesController =
@@ -92,13 +100,27 @@ class _BeneficiaryDataState extends State<BeneficiaryData> {
 
       // Create new controllers
       for (int i = 0; i < number; i++) {
+        final nameController = TextEditingController();
+        final addressController = TextEditingController();
+        final relationshipController = TextEditingController();
+        final percentageController = TextEditingController();
+
+        // Add listeners to new controllers
+        nameController.addListener(() => _checkForChanges());
+        addressController.addListener(() => _checkForChanges());
+        relationshipController.addListener(() => _checkForChanges());
+        percentageController.addListener(() => _checkForChanges());
+
         _beneficiariesControllers.add({
-          'name': TextEditingController(),
-          'address_telephone_number': TextEditingController(),
-          'relationship': TextEditingController(),
-          'percentage_of_benefit': TextEditingController(),
+          'name': nameController,
+          'address_telephone_number': addressController,
+          'relationship': relationshipController,
+          'percentage_of_benefit': percentageController,
         });
       }
+
+      // Check for changes after updating beneficiaries count
+      _checkForChanges();
     });
   }
 
@@ -124,31 +146,110 @@ class _BeneficiaryDataState extends State<BeneficiaryData> {
   @override
   void initState() {
     super.initState();
-    _loadInitialData();
-    // Pass the getPostBody method to parent widget
+    // Prefill form with existing beneficiaries data if available
+    _prefillBeneficiariesData();
+    // Store original data for comparison
+    _storeOriginalData();
+    // Add listeners to detect changes
+    _addChangeListeners();
+    // Pass the getPostBody and shouldSubmitData methods to parent widget
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.onFormReady?.call(getPostBody);
+      widget.onFormReady?.call(getPostBody, shouldSubmitData);
     });
   }
 
-  void _loadInitialData() {
-    if (widget.initialData != null) {
-      final beneficiaries = widget.initialData!['beneficiaries'] as List<dynamic>?;
-      if (beneficiaries != null && beneficiaries.isNotEmpty) {
-        _numberOfBeneficiariesController.text = beneficiaries.length.toString();
-        _numberOfBeneficiaries = beneficiaries.length;
+  // Prefill form with existing beneficiaries data
+  void _prefillBeneficiariesData() {
+    final beneficiaries = appService.currentUser?.beneficiaries;
+    if (beneficiaries != null && beneficiaries.isNotEmpty) {
+      _numberOfBeneficiariesController.text = beneficiaries.length.toString();
+      _numberOfBeneficiaries = beneficiaries.length;
 
-        for (int i = 0; i < beneficiaries.length; i++) {
-          final beneficiary = beneficiaries[i] as Map<String, dynamic>;
-          _beneficiariesControllers.add({
-            'name': TextEditingController(text: beneficiary['name'] ?? ''),
-            'address_telephone_number': TextEditingController(text: beneficiary['address_telephone_number'] ?? ''),
-            'relationship': TextEditingController(text: beneficiary['relationship'] ?? ''),
-            'percentage_of_benefit': TextEditingController(text: beneficiary['percentage_of_benefit'] ?? ''),
-          });
+      // Create controllers for each beneficiary
+      for (int i = 0; i < beneficiaries.length; i++) {
+        _beneficiariesControllers.add({
+          'name': TextEditingController(text: beneficiaries[i].name ?? ''),
+          'address_telephone_number': TextEditingController(
+              text: beneficiaries[i].addressTelephoneNumber ?? ''),
+          'relationship':
+              TextEditingController(text: beneficiaries[i].relationship ?? ''),
+          'percentage_of_benefit': TextEditingController(
+              text: beneficiaries[i].percentageOfBenefit?.toString() ?? ''),
+        });
+      }
+    }
+  }
+
+  // Store original data
+  void _storeOriginalData() {
+    _originalData = getPostBody();
+  }
+
+  // Add change listeners to all controllers
+  void _addChangeListeners() {
+    void listener() => _checkForChanges();
+    _numberOfBeneficiariesController.addListener(listener);
+
+    // Add listeners for beneficiaries controllers
+    for (var controllers in _beneficiariesControllers) {
+      controllers['name']?.addListener(listener);
+      controllers['address_telephone_number']?.addListener(listener);
+      controllers['relationship']?.addListener(listener);
+      controllers['percentage_of_benefit']?.addListener(listener);
+    }
+  }
+
+  // Check if data has changed
+  void _checkForChanges() {
+    if (_originalData == null) return;
+
+    final currentData = getPostBody();
+    bool hasChanged = false;
+
+    // Compare beneficiaries array
+    final originalBeneficiaries =
+        _originalData!['beneficiaries'] as List<Map<String, String>>;
+    final currentBeneficiaries =
+        currentData['beneficiaries'] as List<Map<String, String>>;
+
+    if (originalBeneficiaries.length != currentBeneficiaries.length) {
+      hasChanged = true;
+    } else {
+      for (int i = 0; i < originalBeneficiaries.length; i++) {
+        if (originalBeneficiaries[i]['name'] != currentBeneficiaries[i]['name'] ||
+            originalBeneficiaries[i]['address_telephone_number'] !=
+                currentBeneficiaries[i]['address_telephone_number'] ||
+            originalBeneficiaries[i]['relationship'] !=
+                currentBeneficiaries[i]['relationship'] ||
+            originalBeneficiaries[i]['percentage_of_benefit'] !=
+                currentBeneficiaries[i]['percentage_of_benefit']) {
+          hasChanged = true;
+          break;
         }
       }
     }
+
+    if (hasChanged != _hasDataChanged) {
+      setState(() {
+        _hasDataChanged = hasChanged;
+      });
+    }
+  }
+
+  // Check if data has changed and should be submitted
+  bool shouldSubmitData() {
+    debugPrint(
+      'shouldSubmitData: beneficiaries exist = ${appService.currentUser?.beneficiaries != null && appService.currentUser!.beneficiaries!.isNotEmpty}, hasDataChanged = $_hasDataChanged',
+    );
+    // If beneficiaries already exist and nothing changed, skip submission
+    if (appService.currentUser?.beneficiaries != null &&
+        appService.currentUser!.beneficiaries!.isNotEmpty &&
+        !_hasDataChanged) {
+      debugPrint('shouldSubmitData: returning false (no changes)');
+      return false;
+    }
+    debugPrint('shouldSubmitData: returning true (should submit)');
+    return true;
   }
 
   @override

@@ -61,7 +61,9 @@ class _EmergencyDataState extends State<EmergencyData> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text('Invalid Input'),
-            content: const Text('Number of emergency contacts should be numeric.'),
+            content: const Text(
+              'Number of emergency contacts should be numeric.',
+            ),
             actions: [
               TextButton(
                 onPressed: () {
@@ -112,9 +114,7 @@ class _EmergencyDataState extends State<EmergencyData> {
       });
     }
 
-    return {
-      "emergencies": emergencies,
-    };
+    return {"emergencies": emergencies};
   }
 
   @override
@@ -139,7 +139,9 @@ class _EmergencyDataState extends State<EmergencyData> {
           _emergenciesControllers.add({
             'name': TextEditingController(text: emergency['name'] ?? ''),
             'address': TextEditingController(text: emergency['address'] ?? ''),
-            'telephone_number': TextEditingController(text: emergency['telephone_number'] ?? ''),
+            'telephone_number': TextEditingController(
+              text: emergency['telephone_number'] ?? '',
+            ),
           });
         }
       }
@@ -207,7 +209,8 @@ class _EmergencyDataState extends State<EmergencyData> {
                 CustomFormField(
                   label: 'Telephone Number',
                   hintText: 'Enter telephone number',
-                  controller: _emergenciesControllers[index]['telephone_number']!,
+                  controller:
+                      _emergenciesControllers[index]['telephone_number']!,
                   filled: true,
                   isImportant: true,
                   keyboardType: TextInputType.phone,
@@ -301,7 +304,7 @@ class _EmergencyDataState extends State<EmergencyData> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'Next',
+                          'Finish',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 16,

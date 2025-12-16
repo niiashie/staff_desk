@@ -1,14 +1,17 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:leave_desk/app/locator.dart';
 import 'package:leave_desk/constants/colors.dart';
+import 'package:leave_desk/services/app_service.dart';
+import 'package:leave_desk/services/image_compression_service.dart';
 import 'package:leave_desk/shared/app_logo.dart';
 import 'package:leave_desk/shared/custom_button.dart';
 import 'package:leave_desk/shared/custom_form_field.dart';
-import 'package:leave_desk/shared/step_progress_indicator.dart';
 
 class BioDataWidget extends StatefulWidget {
-  final void Function(Map<String, String> Function())? onFormReady;
+  final void Function(Map<String, dynamic> Function(), bool Function())?
+  onFormReady;
   final VoidCallback? onNext;
   final bool isLoading;
 
@@ -27,6 +30,12 @@ class _BioDataWidgetState extends State<BioDataWidget> {
   final _formKey = GlobalKey<FormState>();
   final ImagePicker _picker = ImagePicker();
   File? _selectedImage;
+  final appService = locator<AppService>();
+  bool _isCompressingImage = false;
+  bool _hasDataChanged = false;
+
+  // Store original values for comparison
+  Map<String, dynamic>? _originalData;
 
   // Controllers for all fields
   final TextEditingController _surnameController = TextEditingController();
@@ -78,7 +87,7 @@ class _BioDataWidgetState extends State<BioDataWidget> {
   }
 
   // Get post body
-  Map<String, String> getPostBody() {
+  Map<String, dynamic> getPostBody() {
     return {
       "surname": _surnameController.text,
       "other_names": _otherNamesController.text,
@@ -93,7 +102,7 @@ class _BioDataWidgetState extends State<BioDataWidget> {
       "account_name": _accountNameController.text,
       "languages_spoken": _languagesSpokenController.text,
       "physical_disability": _physicalDisabilityController.text,
-      "image": _selectedImage?.path ?? "",
+      "image": _selectedImage,
       "previous_names": _previousNamesController.text,
       "house_number": _houseNumberController.text,
       "city_town": _cityTownController.text,
@@ -110,19 +119,173 @@ class _BioDataWidgetState extends State<BioDataWidget> {
   Future<void> _pickImage() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
+      File imageFile = File(image.path);
+
+      // Set compressing state
       setState(() {
-        _selectedImage = File(image.path);
+        _isCompressingImage = true;
       });
+
+      // Compress image to be within 2MB limit
+      File? compressedImage = await ImageCompressionService.compressImage(
+        imageFile,
+        maxSizeInKB: 2048,
+      );
+
+      if (compressedImage != null) {
+        setState(() {
+          _selectedImage = compressedImage;
+          _isCompressingImage = false;
+        });
+
+        // Show success message with file size
+        int sizeInKB = await compressedImage.length() ~/ 1024;
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Image compressed successfully (${sizeInKB}KB)'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        setState(() {
+          _isCompressingImage = false;
+        });
+
+        // Show error message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Failed to compress image. Please try another image.',
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
     }
   }
 
   @override
   void initState() {
     super.initState();
-    // Pass the getPostBody method to parent widget
+    // Prefill form with existing bio data if available
+    _prefillBioData();
+    // Store original data for comparison
+    _storeOriginalData();
+    // Add listeners to detect changes
+    _addChangeListeners();
+    // Pass the getPostBody and shouldSubmitData methods to parent widget
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.onFormReady?.call(getPostBody);
+      widget.onFormReady?.call(getPostBody, shouldSubmitData);
     });
+  }
+
+  // Prefill form with existing bio data
+  void _prefillBioData() {
+    final bioData = appService.currentUser?.bioData;
+    if (bioData != null) {
+      _surnameController.text = bioData.surname ?? '';
+      _otherNamesController.text = bioData.otherNames ?? '';
+      _dateOfBirthController.text = bioData.dateOfBirth ?? '';
+      _nationalityController.text = bioData.nationality ?? '';
+      _homeTownController.text = bioData.homeTown ?? '';
+      _regionController.text = bioData.region ?? '';
+      _genderController.text = bioData.gender ?? '';
+      _socialSecurityNumberController.text = bioData.socialSecurityNumber ?? '';
+      _bankController.text = bioData.bank ?? '';
+      _branchNameController.text = bioData.branchName ?? '';
+      _accountNameController.text = bioData.accountName ?? '';
+      _languagesSpokenController.text =
+          bioData.languagesSpoken?.join(', ') ?? '';
+      _physicalDisabilityController.text = bioData.physicalDisability ?? '';
+      _previousNamesController.text = bioData.previousNames ?? '';
+      _houseNumberController.text = bioData.houseNumber ?? '';
+      _cityTownController.text = bioData.cityTown ?? '';
+      _digitalAddressController.text = bioData.digitalAddress ?? '';
+      _streetNameController.text = bioData.streetName ?? '';
+      _nearestLandmarkController.text = bioData.nearestLandmark ?? '';
+      _postAddressController.text = bioData.postAddress ?? '';
+      _emailAddressController.text = bioData.emailAddress ?? '';
+      _telephoneController.text = bioData.telephone ?? '';
+    }
+  }
+
+  // Store original data
+  void _storeOriginalData() {
+    _originalData = getPostBody();
+  }
+
+  // Add change listeners to all controllers
+  void _addChangeListeners() {
+    void listener() => _checkForChanges();
+    _surnameController.addListener(listener);
+    _otherNamesController.addListener(listener);
+    _dateOfBirthController.addListener(listener);
+    _nationalityController.addListener(listener);
+    _homeTownController.addListener(listener);
+    _regionController.addListener(listener);
+    _genderController.addListener(listener);
+    _socialSecurityNumberController.addListener(listener);
+    _bankController.addListener(listener);
+    _branchNameController.addListener(listener);
+    _accountNameController.addListener(listener);
+    _languagesSpokenController.addListener(listener);
+    _physicalDisabilityController.addListener(listener);
+    _previousNamesController.addListener(listener);
+    _houseNumberController.addListener(listener);
+    _cityTownController.addListener(listener);
+    _digitalAddressController.addListener(listener);
+    _streetNameController.addListener(listener);
+    _nearestLandmarkController.addListener(listener);
+    _postAddressController.addListener(listener);
+    _emailAddressController.addListener(listener);
+    _telephoneController.addListener(listener);
+  }
+
+  // Check if data has changed
+  void _checkForChanges() {
+    if (_originalData == null) return;
+
+    final currentData = getPostBody();
+    bool hasChanged = false;
+
+    // Compare all text fields
+    _originalData!.forEach((key, value) {
+      if (key != 'image') {
+        // Skip image comparison in text check
+        if (currentData[key] != value) {
+          hasChanged = true;
+        }
+      }
+    });
+
+    // Check if image has been added/changed
+    if (_selectedImage != null && _originalData!['image'] != _selectedImage) {
+      hasChanged = true;
+    }
+
+    if (hasChanged != _hasDataChanged) {
+      setState(() {
+        _hasDataChanged = hasChanged;
+      });
+    }
+  }
+
+  // Check if data has changed and should be submitted
+  bool shouldSubmitData() {
+    debugPrint(
+      'shouldSubmitData: bioData exists = ${appService.currentUser?.bioData != null}, hasDataChanged = $_hasDataChanged',
+    );
+    // If bio data already exists and nothing changed, skip submission
+    if (appService.currentUser?.bioData != null && !_hasDataChanged) {
+      debugPrint('shouldSubmitData: returning false (no changes)');
+      return false;
+    }
+    debugPrint('shouldSubmitData: returning true (should submit)');
+    return true;
   }
 
   @override
@@ -185,7 +348,14 @@ class _BioDataWidgetState extends State<BioDataWidget> {
                         border: Border.all(color: Colors.grey, width: 2),
                       ),
                       child: ClipOval(
-                        child: _selectedImage != null
+                        child: _isCompressingImage
+                            ? Container(
+                                color: Colors.grey[200],
+                                child: const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              )
+                            : _selectedImage != null
                             ? Image.file(_selectedImage!, fit: BoxFit.cover)
                             : Image.asset(
                                 'assets/icons/avatar.png',
@@ -193,27 +363,28 @@ class _BioDataWidgetState extends State<BioDataWidget> {
                               ),
                       ),
                     ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: GestureDetector(
-                        onTap: _pickImage,
-                        child: Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.grey, width: 1),
-                          ),
-                          child: const Icon(
-                            Icons.camera_alt,
-                            color: Colors.grey,
-                            size: 20,
+                    if (!_isCompressingImage)
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: GestureDetector(
+                          onTap: _pickImage,
+                          child: Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.grey, width: 1),
+                            ),
+                            child: const Icon(
+                              Icons.camera_alt,
+                              color: Colors.grey,
+                              size: 20,
+                            ),
                           ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ),
@@ -344,6 +515,7 @@ class _BioDataWidgetState extends State<BioDataWidget> {
                           borderRadius: BorderRadius.circular(15),
                         ),
                       ),
+
                       items: const [
                         DropdownMenuItem(value: 'male', child: Text('Male')),
                         DropdownMenuItem(
@@ -351,6 +523,8 @@ class _BioDataWidgetState extends State<BioDataWidget> {
                           child: Text('Female'),
                         ),
                       ],
+                      initialValue: appService.currentUser!.bioData?.gender!
+                          .toLowerCase(),
                       onChanged: (value) {
                         if (value != null) {
                           _genderController.text = value;
@@ -550,6 +724,7 @@ class _BioDataWidgetState extends State<BioDataWidget> {
                   color: AppColors.primaryColor,
                   ontap: () {
                     if (_formKey.currentState?.validate() ?? false) {
+                      // ViewModel will check shouldSubmitData() and decide whether to make API call
                       widget.onNext?.call();
                     }
                   },

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:leave_desk/app/locator.dart';
 import 'package:leave_desk/constants/colors.dart';
+import 'package:leave_desk/services/app_service.dart';
 import 'package:leave_desk/shared/custom_button.dart';
 import 'package:leave_desk/shared/custom_form_field.dart';
 
 class FamilyData extends StatefulWidget {
-  final void Function(Map<String, dynamic> Function())? onFormReady;
+  final void Function(Map<String, dynamic> Function(), bool Function())?
+      onFormReady;
   final VoidCallback? onNext;
   final VoidCallback? onPrevious;
   final bool isLoading;
@@ -23,6 +26,11 @@ class FamilyData extends StatefulWidget {
 
 class _FamilyDataState extends State<FamilyData> {
   final _formKey = GlobalKey<FormState>();
+  final appService = locator<AppService>();
+  bool _hasDataChanged = false;
+
+  // Store original values for comparison
+  Map<String, dynamic>? _originalData;
 
   // Controllers for all fields
   final TextEditingController _maritalStatusController =
@@ -43,12 +51,34 @@ class _FamilyDataState extends State<FamilyData> {
   List<Map<String, TextEditingController>> _childrenControllers = [];
   int _numberOfChildren = 0;
 
+  // Track marital status
+  bool _isMarried = false;
+
+  // Dropdown selected values
+  String? _selectedMaritalStatus;
+  String? _selectedFatherDeceased;
+  String? _selectedMotherDeceased;
+
   // Validator functions
   String? _validateRequired(String? value) {
     if (value == null || value.isEmpty) {
       return 'This field is required';
     }
     return null;
+  }
+
+  // Get dropdown value based on label
+  String? _getDropdownValue(String label, TextEditingController controller) {
+    switch (label) {
+      case 'Marital Status':
+        return _selectedMaritalStatus;
+      case 'Father Deceased':
+        return _selectedFatherDeceased;
+      case 'Mother Deceased':
+        return _selectedMotherDeceased;
+      default:
+        return controller.text.isNotEmpty ? controller.text : null;
+    }
   }
 
   // Handle number of children change
@@ -99,11 +129,21 @@ class _FamilyDataState extends State<FamilyData> {
 
       // Create new controllers
       for (int i = 0; i < number; i++) {
+        final nameController = TextEditingController();
+        final dobController = TextEditingController();
+
+        // Add listeners to new controllers
+        nameController.addListener(() => _checkForChanges());
+        dobController.addListener(() => _checkForChanges());
+
         _childrenControllers.add({
-          'name': TextEditingController(),
-          'dob': TextEditingController(),
+          'name': nameController,
+          'dob': dobController,
         });
       }
+
+      // Check for changes after updating children count
+      _checkForChanges();
     });
   }
 
@@ -133,10 +173,137 @@ class _FamilyDataState extends State<FamilyData> {
   @override
   void initState() {
     super.initState();
-    // Pass the getPostBody method to parent widget
+    // Prefill form with existing family data if available
+    _prefillFamilyData();
+    // Store original data for comparison
+    _storeOriginalData();
+    // Add listeners to detect changes
+    _addChangeListeners();
+    // Pass the getPostBody and shouldSubmitData methods to parent widget
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.onFormReady?.call(getPostBody);
+      widget.onFormReady?.call(getPostBody, shouldSubmitData);
     });
+  }
+
+  // Prefill form with existing family data
+  void _prefillFamilyData() {
+    final familyData = appService.currentUser?.familyData;
+    if (familyData != null) {
+      _maritalStatusController.text = familyData.maritalStatus ?? '';
+      _selectedMaritalStatus = familyData.maritalStatus;
+
+      _spouseNameController.text = familyData.spouseName ?? '';
+      _spouseOccupationController.text = familyData.spouseOccupation ?? '';
+      _fatherNameController.text = familyData.fatherName ?? '';
+
+      _fatherIsDeceasedController.text = familyData.fatherIsDeceased ?? '';
+      _selectedFatherDeceased = familyData.fatherIsDeceased;
+
+      _motherNameController.text = familyData.motherName ?? '';
+
+      _motherIsDeceasedController.text = familyData.motherIsDeceased ?? '';
+      _selectedMotherDeceased = familyData.motherIsDeceased;
+
+      _numberOfChildrenController.text =
+          familyData.numberOfChildren?.toString() ?? '';
+
+      // Set marital status flag
+      _isMarried = familyData.maritalStatus == 'Married';
+
+      // Prefill children data if available
+      if (familyData.children != null && familyData.children!.isNotEmpty) {
+        _numberOfChildren = familyData.children!.length;
+
+        // Create controllers for each child
+        for (int i = 0; i < familyData.children!.length; i++) {
+          _childrenControllers.add({
+            'name': TextEditingController(
+              text: familyData.children![i].name ?? '',
+            ),
+            'dob': TextEditingController(
+              text: familyData.children![i].dateOfBirth ?? '',
+            ),
+          });
+        }
+      }
+    }
+  }
+
+  // Store original data
+  void _storeOriginalData() {
+    _originalData = getPostBody();
+  }
+
+  // Add change listeners to all controllers
+  void _addChangeListeners() {
+    void listener() => _checkForChanges();
+    _maritalStatusController.addListener(listener);
+    _spouseNameController.addListener(listener);
+    _spouseOccupationController.addListener(listener);
+    _fatherNameController.addListener(listener);
+    _fatherIsDeceasedController.addListener(listener);
+    _motherNameController.addListener(listener);
+    _motherIsDeceasedController.addListener(listener);
+    _numberOfChildrenController.addListener(listener);
+
+    // Add listeners for children controllers
+    for (var controllers in _childrenControllers) {
+      controllers['name']?.addListener(listener);
+      controllers['dob']?.addListener(listener);
+    }
+  }
+
+  // Check if data has changed
+  void _checkForChanges() {
+    if (_originalData == null) return;
+
+    final currentData = getPostBody();
+    bool hasChanged = false;
+
+    // Compare all fields except children array
+    _originalData!.forEach((key, value) {
+      if (key != 'children') {
+        if (currentData[key] != value) {
+          hasChanged = true;
+        }
+      }
+    });
+
+    // Compare children array
+    final originalChildren = _originalData!['children'] as List<Map<String, String>>;
+    final currentChildren = currentData['children'] as List<Map<String, String>>;
+
+    if (originalChildren.length != currentChildren.length) {
+      hasChanged = true;
+    } else {
+      for (int i = 0; i < originalChildren.length; i++) {
+        if (originalChildren[i]['name'] != currentChildren[i]['name'] ||
+            originalChildren[i]['date_of_birth'] != currentChildren[i]['date_of_birth']) {
+          hasChanged = true;
+          break;
+        }
+      }
+    }
+
+    if (hasChanged != _hasDataChanged) {
+      setState(() {
+        _hasDataChanged = hasChanged;
+      });
+    }
+  }
+
+  // Check if data has changed and should be submitted
+  bool shouldSubmitData() {
+    debugPrint(
+      'shouldSubmitData: familyData exists = ${appService.currentUser?.familyData != null}, hasDataChanged = $_hasDataChanged',
+    );
+    // If family data already exists and nothing changed, skip submission
+    if (appService.currentUser?.familyData != null && !_hasDataChanged) {
+      debugPrint('shouldSubmitData: returning false (no changes)');
+      return false;
+    }
+    debugPrint('shouldSubmitData: returning true (should submit)');
+    return true;
   }
 
   @override
@@ -196,6 +363,7 @@ class _FamilyDataState extends State<FamilyData> {
           ),
         ),
         DropdownButtonFormField<String>(
+          initialValue: _getDropdownValue(label, controller),
           decoration: InputDecoration(
             hintText: hintText,
             hintStyle: const TextStyle(color: Colors.black, fontSize: 14),
@@ -228,6 +396,26 @@ class _FamilyDataState extends State<FamilyData> {
           onChanged: (value) {
             if (value != null) {
               controller.text = value;
+              setState(() {
+                // Update the appropriate state variable
+                switch (label) {
+                  case 'Marital Status':
+                    _selectedMaritalStatus = value;
+                    _isMarried = value == 'Married';
+                    // Clear spouse fields if single
+                    if (!_isMarried) {
+                      _spouseNameController.clear();
+                      _spouseOccupationController.clear();
+                    }
+                    break;
+                  case 'Father Deceased':
+                    _selectedFatherDeceased = value;
+                    break;
+                  case 'Mother Deceased':
+                    _selectedMotherDeceased = value;
+                    break;
+                }
+              });
             }
           },
           validator: isRequired
@@ -324,29 +512,31 @@ class _FamilyDataState extends State<FamilyData> {
               ),
               const SizedBox(height: 16),
 
-              _buildTwoColumnRow(
-                CustomFormField(
-                  label: 'Marital Status',
-                  hintText: 'Enter marital status',
-                  controller: _maritalStatusController,
-                  filled: true,
-                  isImportant: true,
-                  validator: _validateRequired,
-                ),
-                CustomFormField(
-                  label: 'Spouse Name',
-                  hintText: 'Enter spouse name',
-                  controller: _spouseNameController,
-                  filled: true,
-                ),
+              _buildDropdownField(
+                label: 'Marital Status',
+                hintText: 'Select marital status',
+                items: ['Single', 'Married'],
+                controller: _maritalStatusController,
+                isRequired: true,
               ),
 
-              CustomFormField(
-                label: 'Spouse Occupation',
-                hintText: 'Enter spouse occupation',
-                controller: _spouseOccupationController,
-                filled: true,
-              ),
+              if (_isMarried) ...[
+                const SizedBox(height: 16),
+                _buildTwoColumnRow(
+                  CustomFormField(
+                    label: 'Spouse Name',
+                    hintText: 'Enter spouse name',
+                    controller: _spouseNameController,
+                    filled: true,
+                  ),
+                  CustomFormField(
+                    label: 'Spouse Occupation',
+                    hintText: 'Enter spouse occupation',
+                    controller: _spouseOccupationController,
+                    filled: true,
+                  ),
+                ),
+              ],
 
               const SizedBox(height: 24),
 

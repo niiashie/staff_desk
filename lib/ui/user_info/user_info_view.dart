@@ -91,13 +91,24 @@ class UserInfoView extends StackedView<UserInfoViewModel> {
                         viewModel.currentStep == 1
                             ? BioDataWidget(
                                 onFormReady: viewModel.onBioDataFormReady,
-                                onNext: viewModel.submitBioData,
+                                onNext:
+                                    viewModel.appService.currentUser!.bioData ==
+                                        null
+                                    ? viewModel.submitBioData
+                                    : viewModel.updateBioData,
                                 isLoading: viewModel.isLoading,
                               )
                             : viewModel.currentStep == 2
                             ? FamilyData(
                                 onFormReady: viewModel.onFamilyDataFormReady,
-                                onNext: viewModel.submitFamilyData,
+                                onNext:
+                                    viewModel
+                                            .appService
+                                            .currentUser!
+                                            .familyData ==
+                                        null
+                                    ? viewModel.submitFamilyData
+                                    : viewModel.updateFamilyData,
                                 onPrevious: viewModel.goToPreviousStep,
                                 isLoading: viewModel.isLoading,
                               )
@@ -105,7 +116,14 @@ class UserInfoView extends StackedView<UserInfoViewModel> {
                             ? EmploymentData(
                                 onFormReady:
                                     viewModel.onEmploymentDataFormReady,
-                                onNext: viewModel.submitEmploymentData,
+                                onNext:
+                                    viewModel
+                                            .appService
+                                            .currentUser!
+                                            .employmentRecord ==
+                                        null
+                                    ? viewModel.submitEmploymentData
+                                    : viewModel.updateEmploymentData,
                                 onPrevious: viewModel.goToPreviousStep,
                                 isLoading: viewModel.isLoading,
                               )
@@ -113,14 +131,34 @@ class UserInfoView extends StackedView<UserInfoViewModel> {
                             ? EducationTrainingData(
                                 onFormReady:
                                     viewModel.onEducationTrainingDataFormReady,
-                                onNext: viewModel.submitEducationTrainingData,
+                                onNext: () {
+                                  viewModel.submitEducationTrainingData(
+                                    viewModel
+                                                .appService
+                                                .currentUser!
+                                                .educationTraining ==
+                                            null
+                                        ? "submit"
+                                        : "update",
+                                  );
+                                },
                                 onPrevious: viewModel.goToPreviousStep,
                                 isLoading: viewModel.isLoading,
                               )
                             : viewModel.currentStep == 5
                             ? RefereesData(
                                 onFormReady: viewModel.onRefereesDataFormReady,
-                                onNext: viewModel.submitRefereesData,
+                                onNext: () {
+                                  viewModel.submitRefereesData(
+                                    viewModel
+                                            .appService
+                                            .currentUser!
+                                            .referees!
+                                            .isEmpty
+                                        ? "submit"
+                                        : "upload",
+                                  );
+                                },
                                 onPrevious: viewModel.goToPreviousStep,
                                 isLoading: viewModel.isLoading,
                                 initialData: viewModel.savedRefereesData,
@@ -129,7 +167,17 @@ class UserInfoView extends StackedView<UserInfoViewModel> {
                             ? BeneficiaryData(
                                 onFormReady:
                                     viewModel.onBeneficiaryDataFormReady,
-                                onNext: viewModel.submitBeneficiaryData,
+                                onNext: () {
+                                  viewModel.submitBeneficiaryData(
+                                    viewModel
+                                            .appService
+                                            .currentUser!
+                                            .beneficiaries!
+                                            .isEmpty
+                                        ? "submit"
+                                        : "upload",
+                                  );
+                                },
                                 onPrevious: viewModel.goToPreviousStep,
                                 isLoading: viewModel.isLoading,
                                 initialData: viewModel.savedBeneficiaryData,
@@ -137,7 +185,17 @@ class UserInfoView extends StackedView<UserInfoViewModel> {
                             : viewModel.currentStep == 7
                             ? EmergencyData(
                                 onFormReady: viewModel.onEmergencyDataFormReady,
-                                onNext: viewModel.submitEmergencyData,
+                                onNext: () {
+                                  viewModel.submitEmergencyData(
+                                    viewModel
+                                            .appService
+                                            .currentUser!
+                                            .emergencies!
+                                            .isEmpty
+                                        ? "submit"
+                                        : "update",
+                                  );
+                                },
                                 onPrevious: viewModel.goToPreviousStep,
                                 isLoading: viewModel.isLoading,
                                 initialData: viewModel.savedEmergencyData,

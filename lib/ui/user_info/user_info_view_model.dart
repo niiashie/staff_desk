@@ -26,22 +26,28 @@ class UserInfoViewModel extends BaseViewModel {
   bool isLoading = false;
 
   // Store the getPostBody function from BioDataWidget
-  Map<String, String> Function()? _getBioDataForm;
+  Map<String, dynamic> Function()? _getBioDataForm;
+  bool Function()? _shouldSubmitBioData;
 
   // Store the getPostBody function from FamilyData
   Map<String, dynamic> Function()? _getFamilyDataForm;
+  bool Function()? _shouldSubmitFamilyData;
 
   // Store the getPostBody function from EmploymentData
-  Map<String, String> Function()? _getEmploymentDataForm;
+  Map<String, dynamic> Function()? _getEmploymentDataForm;
+  bool Function()? _shouldSubmitEmploymentData;
 
   // Store the getPostBody function from EducationTrainingData
   Map<String, dynamic> Function()? _getEducationTrainingDataForm;
+  bool Function()? _shouldSubmitEducationTrainingData;
 
   // Store the getPostBody function from RefereesData
   Map<String, dynamic> Function()? _getRefereesDataForm;
+  bool Function()? _shouldSubmitRefereesData;
 
   // Store the getPostBody function from BeneficiaryData
   Map<String, dynamic> Function()? _getBeneficiaryDataForm;
+  bool Function()? _shouldSubmitBeneficiaryData;
 
   // Store the getPostBody function from EmergencyData
   Map<String, dynamic> Function()? _getEmergencyDataForm;
@@ -69,12 +75,16 @@ class UserInfoViewModel extends BaseViewModel {
   }
 
   // Called when BioDataWidget is ready
-  void onBioDataFormReady(Map<String, String> Function() getFormData) {
+  void onBioDataFormReady(
+    Map<String, dynamic> Function() getFormData,
+    bool Function() shouldSubmitData,
+  ) {
     _getBioDataForm = getFormData;
+    _shouldSubmitBioData = shouldSubmitData;
   }
 
   // Get the bio data form data
-  Map<String, String>? getBioDataFormData() {
+  Map<String, dynamic>? getBioDataFormData() {
     return _getBioDataForm?.call();
   }
 
@@ -82,12 +92,20 @@ class UserInfoViewModel extends BaseViewModel {
   Future<void> submitBioData() async {
     final formData = getBioDataFormData();
     if (formData != null) {
+      // Check if data has changed before submitting
+      final shouldSubmit = _shouldSubmitBioData?.call() ?? true;
+
+      if (!shouldSubmit) {
+        // No changes detected, skip to next step
+        currentStep++;
+        rebuildUi();
+        return;
+      }
+
       isLoading = true;
       rebuildUi();
 
       try {
-        debugPrint('Bio Data Form: $formData');
-
         ApiResponse response = await userApi.createBioData(formData);
 
         if (response.ok) {
@@ -97,6 +115,49 @@ class UserInfoViewModel extends BaseViewModel {
           rebuildUi();
         }
       } on DioException catch (e) {
+        debugPrint("error : ${e.response!.data}");
+        isLoading = false;
+        rebuildUi();
+        ApiResponse errorResponse = ApiResponse.parse(e.response);
+        setBusyForObject("loginButton", false);
+
+        appService.showMessage(message: errorResponse.message);
+      }
+    }
+  }
+
+  // Submit bio data and move to next step
+  Future<void> updateBioData() async {
+    debugPrint("Updating bio data");
+    final formData = getBioDataFormData();
+    if (formData != null) {
+      // Check if data has changed before submitting
+      final shouldSubmit = _shouldSubmitBioData?.call() ?? true;
+
+      if (!shouldSubmit) {
+        // No changes detected, skip to next step
+        debugPrint("No changes in bio data, skipping update");
+        currentStep++;
+        rebuildUi();
+        return;
+      }
+
+      isLoading = true;
+      rebuildUi();
+
+      try {
+        ApiResponse response = await userApi.updateBioData(formData);
+
+        if (response.ok) {
+          savedBioData = Map<String, dynamic>.from(formData);
+          isLoading = false;
+          currentStep++;
+          rebuildUi();
+        }
+      } on DioException catch (e) {
+        debugPrint("error : ${e.response!.data}");
+        isLoading = false;
+        rebuildUi();
         ApiResponse errorResponse = ApiResponse.parse(e.response);
         setBusyForObject("loginButton", false);
 
@@ -106,8 +167,12 @@ class UserInfoViewModel extends BaseViewModel {
   }
 
   // Called when FamilyData is ready
-  void onFamilyDataFormReady(Map<String, dynamic> Function() getFormData) {
+  void onFamilyDataFormReady(
+    Map<String, dynamic> Function() getFormData,
+    bool Function() shouldSubmitData,
+  ) {
     _getFamilyDataForm = getFormData;
+    _shouldSubmitFamilyData = shouldSubmitData;
   }
 
   // Get the family data form data
@@ -119,31 +184,71 @@ class UserInfoViewModel extends BaseViewModel {
   Future<void> submitFamilyData() async {
     final formData = getFamilyDataFormData();
     if (formData != null) {
+      // Check if data has changed before submitting
+      final shouldSubmit = _shouldSubmitFamilyData?.call() ?? true;
+
+      if (!shouldSubmit) {
+        // No changes detected, skip to next step
+        currentStep++;
+        rebuildUi();
+        return;
+      }
+
       isLoading = true;
       rebuildUi();
 
       try {
         debugPrint('Family Data Form: $formData');
 
-        // TODO: Replace with actual API call when available
-        // ApiResponse response = await userApi.createFamilyData(formData);
+        ApiResponse response = await userApi.createFamilyData(formData);
 
-        // Simulating API success for now
-        await Future.delayed(const Duration(seconds: 1));
-
-        savedFamilyData = Map<String, dynamic>.from(formData);
+        if (response.ok) {
+          savedFamilyData = Map<String, dynamic>.from(formData);
+          isLoading = false;
+          currentStep++;
+          rebuildUi();
+        }
+      } on DioException catch (e) {
         isLoading = false;
+        rebuildUi();
+        ApiResponse errorResponse = ApiResponse.parse(e.response);
+
+        appService.showMessage(message: errorResponse.message);
+      }
+    }
+  }
+
+  Future<void> updateFamilyData() async {
+    final formData = getFamilyDataFormData();
+    if (formData != null) {
+      // Check if data has changed before submitting
+      final shouldSubmit = _shouldSubmitFamilyData?.call() ?? true;
+
+      if (!shouldSubmit) {
+        // No changes detected, skip to next step
         currentStep++;
         rebuildUi();
+        return;
+      }
 
-        // if (response.ok) {
-        //   isLoading = false;
-        //   currentStep++;
-        //   rebuildUi();
-        // }
+      isLoading = true;
+      rebuildUi();
+
+      try {
+        debugPrint('Family Data Form: $formData');
+
+        ApiResponse response = await userApi.updateFamilyData(formData);
+
+        if (response.ok) {
+          savedFamilyData = Map<String, dynamic>.from(formData);
+          isLoading = false;
+          currentStep++;
+          rebuildUi();
+        }
       } on DioException catch (e) {
+        isLoading = false;
+        rebuildUi();
         ApiResponse errorResponse = ApiResponse.parse(e.response);
-        setBusyForObject("loginButton", false);
 
         appService.showMessage(message: errorResponse.message);
       }
@@ -159,12 +264,16 @@ class UserInfoViewModel extends BaseViewModel {
   }
 
   // Called when EmploymentData is ready
-  void onEmploymentDataFormReady(Map<String, String> Function() getFormData) {
+  void onEmploymentDataFormReady(
+    Map<String, dynamic> Function() getFormData,
+    bool Function() shouldSubmitData,
+  ) {
     _getEmploymentDataForm = getFormData;
+    _shouldSubmitEmploymentData = shouldSubmitData;
   }
 
   // Get the employment data form data
-  Map<String, String>? getEmploymentDataFormData() {
+  Map<String, dynamic>? getEmploymentDataFormData() {
     return _getEmploymentDataForm?.call();
   }
 
@@ -172,29 +281,74 @@ class UserInfoViewModel extends BaseViewModel {
   Future<void> submitEmploymentData() async {
     final formData = getEmploymentDataFormData();
     if (formData != null) {
+      // Check if data has changed before submitting
+      final shouldSubmit = _shouldSubmitEmploymentData?.call() ?? true;
+
+      if (!shouldSubmit) {
+        // No changes detected, skip to next step
+        currentStep++;
+        rebuildUi();
+        return;
+      }
+
       isLoading = true;
       rebuildUi();
 
       try {
         debugPrint('Employment Data Form: $formData');
 
-        // TODO: Replace with actual API call when available
-        // ApiResponse response = await userApi.createEmploymentData(formData);
+        ApiResponse response = await userApi.createEmploymentData(formData);
 
-        // Simulating API success for now
-        await Future.delayed(const Duration(seconds: 1));
-
-        savedEmploymentData = Map<String, dynamic>.from(formData);
+        if (response.ok) {
+          savedEmploymentData = Map<String, dynamic>.from(formData);
+          isLoading = false;
+          currentStep++;
+          rebuildUi();
+        }
+      } on DioException catch (e) {
         isLoading = false;
+        rebuildUi();
+        debugPrint("error : ${e.response!.data}");
+        ApiResponse errorResponse = ApiResponse.parse(e.response);
+        setBusyForObject("loginButton", false);
+
+        appService.showMessage(message: errorResponse.message);
+      }
+    }
+  }
+
+  Future<void> updateEmploymentData() async {
+    debugPrint("Updating record");
+    final formData = getEmploymentDataFormData();
+    if (formData != null) {
+      // Check if data has changed before submitting
+      final shouldSubmit = _shouldSubmitEmploymentData?.call() ?? true;
+
+      if (!shouldSubmit) {
+        // No changes detected, skip to next step
         currentStep++;
         rebuildUi();
+        return;
+      }
 
-        // if (response.ok) {
-        //   isLoading = false;
-        //   currentStep++;
-        //   rebuildUi();
-        // }
+      isLoading = true;
+      rebuildUi();
+
+      try {
+        // debugPrint('Employment Data Form: $formData');
+
+        ApiResponse response = await userApi.updateEmploymentData(formData);
+
+        if (response.ok) {
+          savedEmploymentData = Map<String, dynamic>.from(formData);
+          isLoading = false;
+          currentStep++;
+          rebuildUi();
+        }
       } on DioException catch (e) {
+        isLoading = false;
+        rebuildUi();
+        debugPrint("error : ${e.response!.data}");
         ApiResponse errorResponse = ApiResponse.parse(e.response);
         setBusyForObject("loginButton", false);
 
@@ -206,8 +360,10 @@ class UserInfoViewModel extends BaseViewModel {
   // Called when EducationTrainingData is ready
   void onEducationTrainingDataFormReady(
     Map<String, dynamic> Function() getFormData,
+    bool Function() shouldSubmitData,
   ) {
     _getEducationTrainingDataForm = getFormData;
+    _shouldSubmitEducationTrainingData = shouldSubmitData;
   }
 
   // Get the education training data form data
@@ -216,34 +372,39 @@ class UserInfoViewModel extends BaseViewModel {
   }
 
   // Submit education training data and move to next step
-  Future<void> submitEducationTrainingData() async {
+  Future<void> submitEducationTrainingData(String type) async {
     final formData = getEducationTrainingDataFormData();
     if (formData != null) {
+      // Check if data has changed before submitting
+      final shouldSubmit = _shouldSubmitEducationTrainingData?.call() ?? true;
+
+      if (!shouldSubmit) {
+        // No changes detected, skip to next step
+        currentStep++;
+        rebuildUi();
+        return;
+      }
+
       isLoading = true;
       rebuildUi();
 
       try {
         debugPrint('Education Training Data Form: $formData');
 
-        // TODO: Replace with actual API call when available
-        // ApiResponse response = await userApi.createEducationTrainingData(formData);
+        ApiResponse response = type == "submit"
+            ? await userApi.createEducationTraining(formData)
+            : await userApi.updateEducationTraining(formData);
 
-        // Simulating API success for now
-        await Future.delayed(const Duration(seconds: 1));
-
-        savedEducationTrainingData = Map<String, dynamic>.from(formData);
-        isLoading = false;
-        currentStep++;
-        rebuildUi();
-
-        // if (response.ok) {
-        //   isLoading = false;
-        //   currentStep++;
-        //   rebuildUi();
-        // }
+        if (response.ok) {
+          savedEducationTrainingData = Map<String, dynamic>.from(formData);
+          isLoading = false;
+          currentStep++;
+          rebuildUi();
+        }
       } on DioException catch (e) {
+        isLoading = false;
+        rebuildUi();
         ApiResponse errorResponse = ApiResponse.parse(e.response);
-        setBusyForObject("loginButton", false);
 
         appService.showMessage(message: errorResponse.message);
       }
@@ -251,8 +412,12 @@ class UserInfoViewModel extends BaseViewModel {
   }
 
   // Called when RefereesData is ready
-  void onRefereesDataFormReady(Map<String, dynamic> Function() getFormData) {
+  void onRefereesDataFormReady(
+    Map<String, dynamic> Function() getFormData,
+    bool Function() shouldSubmitData,
+  ) {
     _getRefereesDataForm = getFormData;
+    _shouldSubmitRefereesData = shouldSubmitData;
   }
 
   // Get the referees data form data
@@ -261,32 +426,39 @@ class UserInfoViewModel extends BaseViewModel {
   }
 
   // Submit referees data and move to next step
-  Future<void> submitRefereesData() async {
+  Future<void> submitRefereesData(String type) async {
     final formData = getRefereesDataFormData();
     if (formData != null) {
+      // Check if data has changed before submitting
+      final shouldSubmit = _shouldSubmitRefereesData?.call() ?? true;
+
+      if (!shouldSubmit) {
+        // No changes detected, skip to next step
+        currentStep++;
+        rebuildUi();
+        return;
+      }
+
       isLoading = true;
       rebuildUi();
 
       try {
         debugPrint('Referees Data Form: $formData');
 
-        // TODO: Replace with actual API call when available
-        // ApiResponse response = await userApi.createRefereesData(formData);
+        ApiResponse response = type == "submit"
+            ? await userApi.createReferee(formData)
+            : await userApi.updateReferee(formData);
 
-        // Simulating API success for now
-        await Future.delayed(const Duration(seconds: 1));
-
-        savedRefereesData = Map<String, dynamic>.from(formData);
-        isLoading = false;
-        currentStep++;
-        rebuildUi();
-
-        // if (response.ok) {
-        //   isLoading = false;
-        //   currentStep++;
-        //   rebuildUi();
-        // }
+        if (response.ok) {
+          savedRefereesData = Map<String, dynamic>.from(formData);
+          isLoading = false;
+          currentStep++;
+          rebuildUi();
+        }
       } on DioException catch (e) {
+        isLoading = false;
+
+        rebuildUi();
         ApiResponse errorResponse = ApiResponse.parse(e.response);
         setBusyForObject("loginButton", false);
 
@@ -296,8 +468,12 @@ class UserInfoViewModel extends BaseViewModel {
   }
 
   // Called when BeneficiaryData is ready
-  void onBeneficiaryDataFormReady(Map<String, dynamic> Function() getFormData) {
+  void onBeneficiaryDataFormReady(
+    Map<String, dynamic> Function() getFormData,
+    bool Function() shouldSubmitData,
+  ) {
     _getBeneficiaryDataForm = getFormData;
+    _shouldSubmitBeneficiaryData = shouldSubmitData;
   }
 
   // Get the beneficiary data form data
@@ -306,31 +482,33 @@ class UserInfoViewModel extends BaseViewModel {
   }
 
   // Submit beneficiary data and move to next step
-  Future<void> submitBeneficiaryData() async {
+  Future<void> submitBeneficiaryData(String type) async {
     final formData = getBeneficiaryDataFormData();
     if (formData != null) {
+      // Check if data has changed before submitting
+      final shouldSubmit = _shouldSubmitBeneficiaryData?.call() ?? true;
+
+      if (!shouldSubmit) {
+        // No changes detected, skip to next step
+        currentStep++;
+        rebuildUi();
+        return;
+      }
+
       isLoading = true;
       rebuildUi();
 
       try {
-        debugPrint('Beneficiary Data Form: $formData');
+        ApiResponse response = type == "submit"
+            ? await userApi.createBeneficiary(formData)
+            : await userApi.updateBeneficiary(formData);
 
-        // TODO: Replace with actual API call when available
-        // ApiResponse response = await userApi.createBeneficiaryData(formData);
-
-        // Simulating API success for now
-        await Future.delayed(const Duration(seconds: 1));
-
-        savedBeneficiaryData = Map<String, dynamic>.from(formData);
-        isLoading = false;
-        currentStep++;
-        rebuildUi();
-
-        // if (response.ok) {
-        //   isLoading = false;
-        //   currentStep++;
-        //   rebuildUi();
-        // }
+        if (response.ok) {
+          savedBeneficiaryData = Map<String, dynamic>.from(formData);
+          isLoading = false;
+          currentStep++;
+          rebuildUi();
+        }
       } on DioException catch (e) {
         ApiResponse errorResponse = ApiResponse.parse(e.response);
         setBusyForObject("loginButton", false);
@@ -351,7 +529,7 @@ class UserInfoViewModel extends BaseViewModel {
   }
 
   // Submit emergency data and move to next step
-  Future<void> submitEmergencyData() async {
+  Future<void> submitEmergencyData(String type) async {
     final formData = getEmergencyDataFormData();
     if (formData != null) {
       isLoading = true;
@@ -360,23 +538,22 @@ class UserInfoViewModel extends BaseViewModel {
       try {
         debugPrint('Emergency Data Form: $formData');
 
-        // TODO: Replace with actual API call when available
-        // ApiResponse response = await userApi.createEmergencyData(formData);
+        ApiResponse response = type == "submit"
+            ? await userApi.createEmergencyContact(formData)
+            : await userApi.updateEmergencyContact(formData);
 
-        // Simulating API success for now
-        await Future.delayed(const Duration(seconds: 1));
-
-        savedEmergencyData = Map<String, dynamic>.from(formData);
-        isLoading = false;
-        currentStep++;
-        rebuildUi();
-
-        // if (response.ok) {
-        //   isLoading = false;
-        //   currentStep++;
-        //   rebuildUi();
-        // }
+        if (response.ok) {
+          savedEmergencyData = Map<String, dynamic>.from(formData);
+          isLoading = false;
+          appService.showMessage(
+            title: "Success",
+            message: "Great, your data has been fully captured. Lets proceed",
+          );
+          rebuildUi();
+        }
       } on DioException catch (e) {
+        isLoading = true;
+        rebuildUi();
         ApiResponse errorResponse = ApiResponse.parse(e.response);
         setBusyForObject("loginButton", false);
 

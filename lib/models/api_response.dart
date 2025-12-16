@@ -68,11 +68,15 @@ class ApiResponse {
 
           break;
         case 422:
-          body["errors"].forEach((final String key, final value) {
-            for (int i = 0; i < body["errors"][key].length; i++) {
-              message = body["errors"][key][i];
-            }
-          });
+          if (body["errors"] != null) {
+            body["errors"].forEach((final String key, final value) {
+              for (int i = 0; i < body["errors"][key].length; i++) {
+                message = body["errors"][key][i];
+              }
+            });
+          } else {
+            message = body["message"] ?? "Validation error occurred";
+          }
           break;
         case 500:
           message = "Sorry an unknown error has occured";

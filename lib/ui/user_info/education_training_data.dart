@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:leave_desk/app/locator.dart';
 import 'package:leave_desk/constants/colors.dart';
+import 'package:leave_desk/services/app_service.dart';
 import 'package:leave_desk/shared/custom_button.dart';
 import 'package:leave_desk/shared/custom_form_field.dart';
 
 class EducationTrainingData extends StatefulWidget {
-  final void Function(Map<String, dynamic> Function())? onFormReady;
+  final void Function(Map<String, dynamic> Function(), bool Function())?
+      onFormReady;
   final VoidCallback? onNext;
   final VoidCallback? onPrevious;
   final bool isLoading;
@@ -23,6 +26,11 @@ class EducationTrainingData extends StatefulWidget {
 
 class _EducationTrainingDataState extends State<EducationTrainingData> {
   final _formKey = GlobalKey<FormState>();
+  final appService = locator<AppService>();
+  bool _hasDataChanged = false;
+
+  // Store original values for comparison
+  Map<String, dynamic>? _originalData;
 
   // Controllers for main fields
   final TextEditingController _numberOfAcademicQualificationsController =
@@ -98,12 +106,24 @@ class _EducationTrainingDataState extends State<EducationTrainingData> {
 
       // Create new controllers
       for (int i = 0; i < number; i++) {
+        final yearController = TextEditingController();
+        final institutionController = TextEditingController();
+        final qualificationController = TextEditingController();
+
+        // Add listeners to new controllers
+        yearController.addListener(() => _checkForChanges());
+        institutionController.addListener(() => _checkForChanges());
+        qualificationController.addListener(() => _checkForChanges());
+
         _academicQualificationsControllers.add({
-          'year': TextEditingController(),
-          'institution': TextEditingController(),
-          'qualification': TextEditingController(),
+          'year': yearController,
+          'institution': institutionController,
+          'qualification': qualificationController,
         });
       }
+
+      // Check for changes after updating qualifications count
+      _checkForChanges();
     });
   }
 
@@ -158,13 +178,27 @@ class _EducationTrainingDataState extends State<EducationTrainingData> {
 
       // Create new controllers
       for (int i = 0; i < number; i++) {
+        final institutionController = TextEditingController();
+        final yearController = TextEditingController();
+        final courseController = TextEditingController();
+        final locationController = TextEditingController();
+
+        // Add listeners to new controllers
+        institutionController.addListener(() => _checkForChanges());
+        yearController.addListener(() => _checkForChanges());
+        courseController.addListener(() => _checkForChanges());
+        locationController.addListener(() => _checkForChanges());
+
         _professionalTrainingsControllers.add({
-          'instituition': TextEditingController(),
-          'year': TextEditingController(),
-          'course': TextEditingController(),
-          'location': TextEditingController(),
+          'instituition': institutionController,
+          'year': yearController,
+          'course': courseController,
+          'location': locationController,
         });
       }
+
+      // Check for changes after updating trainings count
+      _checkForChanges();
     });
   }
 
@@ -207,10 +241,191 @@ class _EducationTrainingDataState extends State<EducationTrainingData> {
   @override
   void initState() {
     super.initState();
-    // Pass the getPostBody method to parent widget
+    // Prefill form with existing education training data if available
+    _prefillEducationTrainingData();
+    // Store original data for comparison
+    _storeOriginalData();
+    // Add listeners to detect changes
+    _addChangeListeners();
+    // Pass the getPostBody and shouldSubmitData methods to parent widget
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.onFormReady?.call(getPostBody);
+      widget.onFormReady?.call(getPostBody, shouldSubmitData);
     });
+  }
+
+  // Prefill form with existing education training data
+  void _prefillEducationTrainingData() {
+    final educationTraining = appService.currentUser?.educationTraining;
+    if (educationTraining != null) {
+      _numberOfAcademicQualificationsController.text =
+          educationTraining.numberOfAcademicQualifications?.toString() ?? '';
+      _numberOfProfessionalTrainingController.text =
+          educationTraining.numberOfProfessionalTraining?.toString() ?? '';
+      _hobbiesSpecialInterestController.text =
+          educationTraining.hobbiesSpecialInterest ?? '';
+
+      // Prefill academic qualifications if available
+      if (educationTraining.academicQualifications != null &&
+          educationTraining.academicQualifications!.isNotEmpty) {
+        _numberOfAcademicQualifications =
+            educationTraining.academicQualifications!.length;
+
+        // Create controllers for each academic qualification
+        for (int i = 0;
+            i < educationTraining.academicQualifications!.length;
+            i++) {
+          _academicQualificationsControllers.add({
+            'year': TextEditingController(
+              text: educationTraining.academicQualifications![i].year ?? '',
+            ),
+            'institution': TextEditingController(
+              text:
+                  educationTraining.academicQualifications![i].institution ?? '',
+            ),
+            'qualification': TextEditingController(
+              text: educationTraining.academicQualifications![i].qualification ??
+                  '',
+            ),
+          });
+        }
+      }
+
+      // Prefill professional trainings if available
+      if (educationTraining.trainings != null &&
+          educationTraining.trainings!.isNotEmpty) {
+        _numberOfProfessionalTraining = educationTraining.trainings!.length;
+
+        // Create controllers for each professional training
+        for (int i = 0; i < educationTraining.trainings!.length; i++) {
+          _professionalTrainingsControllers.add({
+            'instituition': TextEditingController(
+              text: educationTraining.trainings![i].institution ?? '',
+            ),
+            'year': TextEditingController(
+              text: educationTraining.trainings![i].year ?? '',
+            ),
+            'course': TextEditingController(
+              text: educationTraining.trainings![i].course ?? '',
+            ),
+            'location': TextEditingController(
+              text: educationTraining.trainings![i].location ?? '',
+            ),
+          });
+        }
+      }
+    }
+  }
+
+  // Store original data
+  void _storeOriginalData() {
+    _originalData = getPostBody();
+  }
+
+  // Add change listeners to all controllers
+  void _addChangeListeners() {
+    void listener() => _checkForChanges();
+    _numberOfAcademicQualificationsController.addListener(listener);
+    _numberOfProfessionalTrainingController.addListener(listener);
+    _hobbiesSpecialInterestController.addListener(listener);
+
+    // Add listeners for academic qualifications controllers
+    for (var controllers in _academicQualificationsControllers) {
+      controllers['year']?.addListener(listener);
+      controllers['institution']?.addListener(listener);
+      controllers['qualification']?.addListener(listener);
+    }
+
+    // Add listeners for professional trainings controllers
+    for (var controllers in _professionalTrainingsControllers) {
+      controllers['instituition']?.addListener(listener);
+      controllers['year']?.addListener(listener);
+      controllers['course']?.addListener(listener);
+      controllers['location']?.addListener(listener);
+    }
+  }
+
+  // Check if data has changed
+  void _checkForChanges() {
+    if (_originalData == null) return;
+
+    final currentData = getPostBody();
+    bool hasChanged = false;
+
+    // Compare main fields
+    if (_originalData!['number_of_academic_qualifications'] !=
+            currentData['number_of_academic_qualifications'] ||
+        _originalData!['number_of_professional_training'] !=
+            currentData['number_of_professional_training'] ||
+        _originalData!['hobbies_special_interes'] !=
+            currentData['hobbies_special_interes']) {
+      hasChanged = true;
+    }
+
+    // Compare academic qualifications array
+    if (!hasChanged) {
+      final originalQualifications =
+          _originalData!['academic_qualifications'] as List<Map<String, String>>;
+      final currentQualifications =
+          currentData['academic_qualifications'] as List<Map<String, String>>;
+
+      if (originalQualifications.length != currentQualifications.length) {
+        hasChanged = true;
+      } else {
+        for (int i = 0; i < originalQualifications.length; i++) {
+          if (originalQualifications[i]['year'] != currentQualifications[i]['year'] ||
+              originalQualifications[i]['institution'] !=
+                  currentQualifications[i]['institution'] ||
+              originalQualifications[i]['qualification'] !=
+                  currentQualifications[i]['qualification']) {
+            hasChanged = true;
+            break;
+          }
+        }
+      }
+    }
+
+    // Compare professional trainings array
+    if (!hasChanged) {
+      final originalTrainings =
+          _originalData!['professional_trainings'] as List<Map<String, String>>;
+      final currentTrainings =
+          currentData['professional_trainings'] as List<Map<String, String>>;
+
+      if (originalTrainings.length != currentTrainings.length) {
+        hasChanged = true;
+      } else {
+        for (int i = 0; i < originalTrainings.length; i++) {
+          if (originalTrainings[i]['instituition'] !=
+                  currentTrainings[i]['instituition'] ||
+              originalTrainings[i]['year'] != currentTrainings[i]['year'] ||
+              originalTrainings[i]['course'] != currentTrainings[i]['course'] ||
+              originalTrainings[i]['location'] != currentTrainings[i]['location']) {
+            hasChanged = true;
+            break;
+          }
+        }
+      }
+    }
+
+    if (hasChanged != _hasDataChanged) {
+      setState(() {
+        _hasDataChanged = hasChanged;
+      });
+    }
+  }
+
+  // Check if data has changed and should be submitted
+  bool shouldSubmitData() {
+    debugPrint(
+      'shouldSubmitData: educationTraining exists = ${appService.currentUser?.educationTraining != null}, hasDataChanged = $_hasDataChanged',
+    );
+    // If education training already exists and nothing changed, skip submission
+    if (appService.currentUser?.educationTraining != null && !_hasDataChanged) {
+      debugPrint('shouldSubmitData: returning false (no changes)');
+      return false;
+    }
+    debugPrint('shouldSubmitData: returning true (should submit)');
+    return true;
   }
 
   @override

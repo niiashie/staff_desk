@@ -35,11 +35,23 @@ class BaseApi {
     return _getDio().post(url, data: data, queryParameters: queryParameters);
   }
 
+  Future put({required String url, dynamic data, dynamic queryParameters}) {
+    return _getDio().put(url, data: data, queryParameters: queryParameters);
+  }
+
   Future delete({required String url, dynamic queryParameters}) {
     return _getDio().delete(url, queryParameters: queryParameters);
   }
 
   Future patch({required String url, dynamic data}) {
     return _getDio().patch(url, data: data);
+  }
+
+  Future postMultipart({required String url, required FormData data, dynamic queryParameters}) {
+    return _getDio().post(url, data: data, queryParameters: queryParameters);
+  }
+
+  Future putMultipart({required String url, required FormData data, dynamic queryParameters}) {
+    return _getDio().put(url, data: data, queryParameters: queryParameters);
   }
 }
