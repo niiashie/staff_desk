@@ -35,10 +35,25 @@ class AuthenticationViewModel extends BaseViewModel {
           debugPrint("response : ${loginresponse.data}");
           appService.currentUser = User.fromJson(loginresponse.data);
           setBusyForObject("loginButton", false);
-          Navigator.of(
-            // ignore: use_build_context_synchronously
-            StackedService.navigatorKey!.currentState!.context,
-          ).pushReplacementNamed(Routes.userInfo);
+
+          // Check screen width and navigate to appropriate view
+          final context = StackedService.navigatorKey!.currentState!.context;
+          final screenWidth = MediaQuery.of(context).size.width;
+          final isMobile = screenWidth < 600;
+
+          if (appService.currentUser!.accountIsVerified!) {
+            Navigator.of(
+              // ignore: use_build_context_synchronously
+              context,
+            ).pushReplacementNamed(Routes.base);
+          } else {
+            Navigator.of(
+              // ignore: use_build_context_synchronously
+              context,
+            ).pushReplacementNamed(
+              isMobile ? Routes.userInfoMobile : Routes.userInfo,
+            );
+          }
         }
       } on DioException catch (e) {
         ApiResponse errorResponse = ApiResponse.parse(e.response);

@@ -7,7 +7,7 @@ import 'package:leave_desk/shared/custom_form_field.dart';
 
 class EducationTrainingData extends StatefulWidget {
   final void Function(Map<String, dynamic> Function(), bool Function())?
-      onFormReady;
+  onFormReady;
   final VoidCallback? onNext;
   final VoidCallback? onPrevious;
   final bool isLoading;
@@ -76,7 +76,8 @@ class _EducationTrainingDataState extends State<EducationTrainingData> {
           return AlertDialog(
             title: const Text('Invalid Input'),
             content: const Text(
-                'Number of academic qualifications should be numeric.'),
+              'Number of academic qualifications should be numeric.',
+            ),
             actions: [
               TextButton(
                 onPressed: () {
@@ -147,7 +148,8 @@ class _EducationTrainingDataState extends State<EducationTrainingData> {
           return AlertDialog(
             title: const Text('Invalid Input'),
             content: const Text(
-                'Number of professional training should be numeric.'),
+              'Number of professional training should be numeric.',
+            ),
             actions: [
               TextButton(
                 onPressed: () {
@@ -271,19 +273,23 @@ class _EducationTrainingDataState extends State<EducationTrainingData> {
             educationTraining.academicQualifications!.length;
 
         // Create controllers for each academic qualification
-        for (int i = 0;
-            i < educationTraining.academicQualifications!.length;
-            i++) {
+        for (
+          int i = 0;
+          i < educationTraining.academicQualifications!.length;
+          i++
+        ) {
           _academicQualificationsControllers.add({
             'year': TextEditingController(
               text: educationTraining.academicQualifications![i].year ?? '',
             ),
             'institution': TextEditingController(
               text:
-                  educationTraining.academicQualifications![i].institution ?? '',
+                  educationTraining.academicQualifications![i].institution ??
+                  '',
             ),
             'qualification': TextEditingController(
-              text: educationTraining.academicQualifications![i].qualification ??
+              text:
+                  educationTraining.academicQualifications![i].qualification ??
                   '',
             ),
           });
@@ -364,7 +370,8 @@ class _EducationTrainingDataState extends State<EducationTrainingData> {
     // Compare academic qualifications array
     if (!hasChanged) {
       final originalQualifications =
-          _originalData!['academic_qualifications'] as List<Map<String, String>>;
+          _originalData!['academic_qualifications']
+              as List<Map<String, String>>;
       final currentQualifications =
           currentData['academic_qualifications'] as List<Map<String, String>>;
 
@@ -372,7 +379,8 @@ class _EducationTrainingDataState extends State<EducationTrainingData> {
         hasChanged = true;
       } else {
         for (int i = 0; i < originalQualifications.length; i++) {
-          if (originalQualifications[i]['year'] != currentQualifications[i]['year'] ||
+          if (originalQualifications[i]['year'] !=
+                  currentQualifications[i]['year'] ||
               originalQualifications[i]['institution'] !=
                   currentQualifications[i]['institution'] ||
               originalQualifications[i]['qualification'] !=
@@ -399,7 +407,8 @@ class _EducationTrainingDataState extends State<EducationTrainingData> {
                   currentTrainings[i]['instituition'] ||
               originalTrainings[i]['year'] != currentTrainings[i]['year'] ||
               originalTrainings[i]['course'] != currentTrainings[i]['course'] ||
-              originalTrainings[i]['location'] != currentTrainings[i]['location']) {
+              originalTrainings[i]['location'] !=
+                  currentTrainings[i]['location']) {
             hasChanged = true;
             break;
           }
@@ -453,6 +462,18 @@ class _EducationTrainingDataState extends State<EducationTrainingData> {
   }
 
   Widget _buildTwoColumnRow(Widget left, Widget right) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+
+    if (isMobile) {
+      // Stack vertically on mobile
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [left, const SizedBox(height: 16), right],
+      );
+    }
+
+    // Side by side on desktop
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -512,8 +533,8 @@ class _EducationTrainingDataState extends State<EducationTrainingData> {
               CustomFormField(
                 label: 'Qualification',
                 hintText: 'Enter qualification',
-                controller: _academicQualificationsControllers[index]
-                    ['qualification']!,
+                controller:
+                    _academicQualificationsControllers[index]['qualification']!,
                 filled: true,
                 isImportant: true,
                 validator: _validateRequired,
@@ -554,8 +575,8 @@ class _EducationTrainingDataState extends State<EducationTrainingData> {
                 CustomFormField(
                   label: 'Institution',
                   hintText: 'Enter institution name',
-                  controller: _professionalTrainingsControllers[index]
-                      ['instituition']!,
+                  controller:
+                      _professionalTrainingsControllers[index]['instituition']!,
                   filled: true,
                   isImportant: true,
                   validator: _validateRequired,
@@ -563,8 +584,7 @@ class _EducationTrainingDataState extends State<EducationTrainingData> {
                 CustomFormField(
                   label: 'Year',
                   hintText: 'Enter year',
-                  controller:
-                      _professionalTrainingsControllers[index]['year']!,
+                  controller: _professionalTrainingsControllers[index]['year']!,
                   filled: true,
                   isImportant: true,
                   keyboardType: TextInputType.number,
