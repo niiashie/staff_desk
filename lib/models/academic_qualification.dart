@@ -20,7 +20,7 @@ class AcademicQualification {
   factory AcademicQualification.fromJson(Map<String, dynamic> json) {
     return AcademicQualification(
       id: json['id'] as int?,
-      educationTrainingsId: json['education_trainings_id'],
+      educationTrainingsId: json['education_trainings_id'].toString(),
       year: json['year'] as String?,
       institution: json['institution'] as String?,
       qualification: json['qualification'] as String?,

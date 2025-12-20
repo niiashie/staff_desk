@@ -20,7 +20,7 @@ class PreviousWorkPlaces {
   factory PreviousWorkPlaces.fromJson(Map<String, dynamic> json) {
     return PreviousWorkPlaces(
       id: json['id'] as int?,
-      employmentRecordId: json['employment_record_id'],
+      employmentRecordId: json['employment_record_id'].toString(),
       companyInstitution: json['company_instituition'] as String?,
       jobTitle: json['job_title'] as String?,
       date: json['date'] as String?,

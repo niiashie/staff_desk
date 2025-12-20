@@ -22,7 +22,7 @@ class Training {
   factory Training.fromJson(Map<String, dynamic> json) {
     return Training(
       id: json['id'] as int?,
-      educationTrainingsId: json['education_trainings_id'],
+      educationTrainingsId: json['education_trainings_id'].toString(),
       institution: json['instituition'] as String?,
       year: json['year'] as String?,
       course: json['course'] as String?,

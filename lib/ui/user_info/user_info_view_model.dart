@@ -2,7 +2,15 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:leave_desk/api/user_api.dart';
 import 'package:leave_desk/app/locator.dart';
+import 'package:leave_desk/constants/routes.dart';
 import 'package:leave_desk/models/api_response.dart';
+import 'package:leave_desk/models/beneficiary.dart';
+import 'package:leave_desk/models/bio_data.dart';
+import 'package:leave_desk/models/education_training.dart';
+import 'package:leave_desk/models/emergency_contact.dart';
+import 'package:leave_desk/models/employment_record.dart';
+import 'package:leave_desk/models/family_data.dart';
+import 'package:leave_desk/models/referee.dart';
 import 'package:leave_desk/services/app_service.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -543,12 +551,38 @@ class UserInfoViewModel extends BaseViewModel {
             : await userApi.updateEmergencyContact(formData);
 
         if (response.ok) {
-          savedEmergencyData = Map<String, dynamic>.from(formData);
+          debugPrint("results : ${response.data}");
+          Map<String, dynamic> results = response.data;
+          appService.currentUser!.bioData = BioData.fromJson(
+            results['bio_data'],
+          );
+          appService.currentUser!.familyData = FamilyData.fromJson(
+            results['family_data'],
+          );
+          appService.currentUser!.employmentRecord = EmploymentRecord.fromJson(
+            results['employment_record'],
+          );
+          appService.currentUser!.educationTraining =
+              EducationTraining.fromJson(results['education_training']);
+          appService.currentUser!.emergencies = results['emergencies'].map(
+            (e) => EmergencyContact.fromJson(e),
+          ).toList();
+          appService.currentUser!.beneficiaries = results['emergencies'].map(
+            (e) => Beneficiary.fromJson(e),
+          ).toList();
+          appService.currentUser!.referees = results['referees'].map(
+            (e) => Referee.fromJson(e),
+          ).toList();
+
           isLoading = false;
           appService.showMessage(
             title: "Success",
             message: "Great, your data has been fully captured. Lets proceed",
           );
+          Navigator.of(
+            // ignore: use_build_context_synchronously
+            StackedService.navigatorKey!.currentContext!,
+          ).pushReplacementNamed(Routes.base);
           rebuildUi();
         }
       } on DioException catch (e) {

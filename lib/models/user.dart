@@ -10,7 +10,7 @@ class User {
   int? id;
   String? name;
   String? pin;
-  String? role;
+
   String? status;
   String? createdAt;
   String? updatedAt;
@@ -29,7 +29,7 @@ class User {
     this.id,
     this.name,
     this.pin,
-    this.role,
+
     this.status,
     this.createdAt,
     this.updatedAt,
@@ -52,7 +52,7 @@ class User {
       id: userData['id'],
       name: userData['name'],
       pin: userData['pin']?.toString(),
-      role: userData['role'],
+
       status: userData['status'],
       createdAt: userData['created_at'],
       updatedAt: userData['updated_at'],
@@ -73,18 +73,20 @@ class User {
           : null,
       referees: userData['referees'] != null
           ? (userData['referees'] as List)
-              .map((e) => Referee.fromJson(e as Map<String, dynamic>))
-              .toList()
+                .map((e) => Referee.fromJson(e as Map<String, dynamic>))
+                .toList()
           : null,
       beneficiaries: userData['beneficiaries'] != null
           ? (userData['beneficiaries'] as List)
-              .map((e) => Beneficiary.fromJson(e as Map<String, dynamic>))
-              .toList()
+                .map((e) => Beneficiary.fromJson(e as Map<String, dynamic>))
+                .toList()
           : null,
       emergencies: userData['emergencies'] != null
           ? (userData['emergencies'] as List)
-              .map((e) => EmergencyContact.fromJson(e as Map<String, dynamic>))
-              .toList()
+                .map(
+                  (e) => EmergencyContact.fromJson(e as Map<String, dynamic>),
+                )
+                .toList()
           : null,
     );
   }
@@ -95,7 +97,7 @@ class User {
         'id': id,
         'name': name,
         'pin': pin,
-        'role': role,
+
         'status': status,
         'created_at': createdAt,
         'updated_at': updatedAt,

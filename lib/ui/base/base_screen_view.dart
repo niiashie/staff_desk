@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:leave_desk/constants/colors.dart';
 import 'package:leave_desk/ui/base/base_screen_view_model.dart';
+import 'package:leave_desk/ui/base/widget/app_bar.dart';
+import 'package:leave_desk/ui/base/widget/side_menu.dart';
+import 'package:leave_desk/ui/dashboard/dashboard_view.dart';
+import 'package:leave_desk/ui/department/department_view.dart';
+import 'package:leave_desk/ui/role/role_view.dart';
+import 'package:leave_desk/ui/staff/staff_view.dart';
+import 'package:leave_desk/utils.dart';
 import 'package:stacked/stacked.dart';
 
 class BaseScreenView extends StackedView<BaseScreenViewModel> {
@@ -28,13 +35,58 @@ class BaseScreenView extends StackedView<BaseScreenViewModel> {
         child: Row(
           mainAxisSize: MainAxisSize.max,
           children: [
-            Container(
-              width: 80,
-              height: double.infinity,
-              color: AppColors.primaryColor,
+            SideMenu(
+              labels: viewModel.labels,
+              icons: viewModel.icons,
+              selected: viewModel.selection,
+              onSelected: (value, index) {
+                viewModel.setSelection(index);
+              },
             ),
             Expanded(
-              child: SizedBox(width: double.infinity, height: double.infinity),
+              child: SizedBox(
+                width: double.infinity,
+                height: double.infinity,
+                child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    AppBarWidget(),
+                    Expanded(
+                      child: Container(
+                        width: double.infinity,
+                        height: double.infinity,
+                        margin: const EdgeInsets.only(top: 3, left: 5),
+                        color: AppColors.baseColor,
+                        child: Navigator(
+                          key: Utils.sideMenuNavigationKey,
+                          initialRoute: '/dashboard',
+                          onGenerateRoute: ((settings) {
+                            Widget page;
+                            switch (settings.name) {
+                              case '/dashboard':
+                                page = const DashboardView();
+                                break;
+                              case '/staff':
+                                page = const StaffView();
+                                break;
+                              case '/roles':
+                                page = const RoleView();
+                                break;
+                              case '/departments':
+                                page = const DepartmentView();
+                                break;
+                              default:
+                                page = const DashboardView();
+                                break;
+                            }
+                            return Utils.slideRightTransition(page);
+                          }),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),

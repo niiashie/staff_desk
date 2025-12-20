@@ -2,12 +2,15 @@ import 'dart:async';
 
 import 'package:leave_desk/app/dialog.dart';
 import 'package:leave_desk/app/locator.dart';
+import 'package:leave_desk/models/navigation_item.dart';
 import 'package:leave_desk/models/user.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 class AppService {
   StreamController<String> reloadController =
       StreamController<String>.broadcast();
+  StreamController<NavigationItem> controller =
+      StreamController<NavigationItem>.broadcast();
   final DialogService dialogService = locator<DialogService>();
   User? currentUser;
 
