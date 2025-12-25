@@ -564,18 +564,19 @@ class UserInfoViewModel extends BaseViewModel {
           );
           appService.currentUser!.educationTraining =
               EducationTraining.fromJson(results['education_training']);
-          appService.currentUser!.emergencies = results['emergencies'].map(
-            (e) => EmergencyContact.fromJson(e),
-          ).toList();
-          appService.currentUser!.beneficiaries = results['emergencies'].map(
-            (e) => Beneficiary.fromJson(e),
-          ).toList();
-          appService.currentUser!.referees = results['referees'].map(
-            (e) => Referee.fromJson(e),
-          ).toList();
+          appService.currentUser!.emergencies = (results['emergencies'] as List)
+              .map((e) => EmergencyContact.fromJson(e))
+              .toList();
+          appService.currentUser!.beneficiaries =
+              (results['beneficiaries'] as List)
+                  .map((e) => Beneficiary.fromJson(e))
+                  .toList();
+          appService.currentUser!.referees = (results['referees'] as List)
+              .map((e) => Referee.fromJson(e))
+              .toList();
 
           isLoading = false;
-          appService.showMessage(
+          await appService.showMessage(
             title: "Success",
             message: "Great, your data has been fully captured. Lets proceed",
           );

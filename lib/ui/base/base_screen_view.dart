@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:leave_desk/constants/colors.dart';
+import 'package:leave_desk/models/user.dart';
 import 'package:leave_desk/ui/base/base_screen_view_model.dart';
 import 'package:leave_desk/ui/base/widget/app_bar.dart';
 import 'package:leave_desk/ui/base/widget/side_menu.dart';
+import 'package:leave_desk/ui/branch/branch_view.dart';
+import 'package:leave_desk/ui/branch/widget/add_branch_view.dart';
 import 'package:leave_desk/ui/dashboard/dashboard_view.dart';
 import 'package:leave_desk/ui/department/department_view.dart';
+import 'package:leave_desk/ui/department/widget/add_department_view.dart';
+import 'package:leave_desk/ui/role/widget/add_role_view.dart';
 import 'package:leave_desk/ui/role/role_view.dart';
 import 'package:leave_desk/ui/staff/staff_view.dart';
+import 'package:leave_desk/ui/staff/widget/view_staff_view.dart';
 import 'package:leave_desk/utils.dart';
 import 'package:stacked/stacked.dart';
 
@@ -75,6 +81,22 @@ class BaseScreenView extends StackedView<BaseScreenViewModel> {
                               case '/departments':
                                 page = const DepartmentView();
                                 break;
+                              case '/addRole':
+                                page = const AddRoleView();
+                                break;
+                              case '/addDepartment':
+                                page = const AddDepartmentView();
+                                break;
+                              case '/addBranch':
+                                page = const AddBranchView();
+                                break;
+                              case '/branches':
+                                page = const BranchView();
+                                break;
+                              case '/viewUser':
+                                page = ViewStaffView(user: User());
+                                break;
+
                               default:
                                 page = const DashboardView();
                                 break;

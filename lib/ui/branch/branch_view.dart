@@ -7,13 +7,13 @@ import 'package:leave_desk/shared/loading.dart';
 import 'package:leave_desk/shared/page_title.dart';
 import 'package:leave_desk/shared/table_text.dart';
 import 'package:leave_desk/shared/table_title.dart';
-import 'package:leave_desk/ui/department/department_view_model.dart';
-import 'package:leave_desk/ui/department/widget/add_department_view.dart';
+import 'package:leave_desk/ui/branch/branch_view_model.dart';
+import 'package:leave_desk/ui/branch/widget/add_branch_view.dart';
 import 'package:leave_desk/utils.dart';
 import 'package:stacked/stacked.dart';
 
-class DepartmentView extends StackedView<DepartmentViewModel> {
-  const DepartmentView({Key? key}) : super(key: key);
+class BranchView extends StackedView<BranchViewModel> {
+  const BranchView({Key? key}) : super(key: key);
 
   @override
   bool get reactive => true;
@@ -22,8 +22,8 @@ class DepartmentView extends StackedView<DepartmentViewModel> {
   bool get disposeViewModel => true;
 
   @override
-  void onViewModelReady(DepartmentViewModel viewModel) async {
-    viewModel.fetchDepartments();
+  void onViewModelReady(BranchViewModel viewModel) async {
+    viewModel.getBranches();
     super.onViewModelReady(viewModel);
   }
 
@@ -34,7 +34,7 @@ class DepartmentView extends StackedView<DepartmentViewModel> {
       height: double.infinity,
       margin: const EdgeInsets.symmetric(horizontal: 35),
       child: viewModel.busy("loading")
-          ? Center(child: Loading(title: "Loading"))
+          ? Center(child: Loading(title: "Fetching Branches"))
           : SingleChildScrollView(
               child: Column(
                 children: [
@@ -46,20 +46,20 @@ class DepartmentView extends StackedView<DepartmentViewModel> {
                       children: [
                         Align(
                           alignment: Alignment.centerLeft,
-                          child: PageTitle(name: "Registered Department"),
+                          child: PageTitle(name: "Registered Branches"),
                         ),
                         Align(
                           alignment: Alignment.centerRight,
                           child: CustomButton(
-                            width: 170,
+                            width: 140,
                             color: AppColors.primaryColor,
                             elevation: 2,
                             height: 40,
                             ontap: () {
                               viewModel.appService.controller.add(
                                 NavigationItem(
-                                  "Add Department",
-                                  "/addDepartment",
+                                  "Add Branch",
+                                  "/addBranch",
                                   "sub",
                                 ),
                               );
@@ -68,7 +68,7 @@ class DepartmentView extends StackedView<DepartmentViewModel> {
                               ).push(
                                 MaterialPageRoute(
                                   builder: (BuildContext context) {
-                                    return AddDepartmentView();
+                                    return AddBranchView();
                                   },
                                 ),
                               );
@@ -79,7 +79,7 @@ class DepartmentView extends StackedView<DepartmentViewModel> {
                                 Icon(Icons.add, color: Colors.white, size: 15),
                                 SizedBox(width: 8),
                                 Text(
-                                  'Create Department',
+                                  'Create Branch',
                                   style: TextStyle(
                                     color: Colors.white,
 
@@ -112,21 +112,15 @@ class DepartmentView extends StackedView<DepartmentViewModel> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Flexible(
-                              flex: 2,
+                              flex: 3,
                               child: TableTitle(name: "Name", leftPadding: 10),
                             ),
-                            Flexible(flex: 1, child: TableTitle(name: "Code")),
-                            Flexible(
-                              flex: 3,
-                              child: TableTitle(name: "Description"),
-                            ),
                             Flexible(
                               flex: 2,
-                              child: TableTitle(
-                                leftPadding: 10,
-                                name: "Branch",
-                              ),
+                              child: TableTitle(name: "Address"),
                             ),
+                            Flexible(flex: 2, child: TableTitle(name: "City")),
+                            Flexible(flex: 2, child: TableTitle(name: "Phone")),
                             Flexible(
                               flex: 1,
                               child: TableTitle(
@@ -141,7 +135,7 @@ class DepartmentView extends StackedView<DepartmentViewModel> {
                     ),
                   ),
                   ListView.builder(
-                    itemCount: viewModel.departments.length,
+                    itemCount: viewModel.branches.length,
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemBuilder: (context, index) {
@@ -152,37 +146,30 @@ class DepartmentView extends StackedView<DepartmentViewModel> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Flexible(
-                              flex: 2,
-                              child: TableText(
-                                leftPadding: 10,
-                                name: Utils().toTitleCase(
-                                  viewModel.departments[index].name!,
-                                ),
-                              ),
-                            ),
-                            Flexible(
-                              flex: 1,
-                              child: TableText(
-                                name: viewModel.departments[index].code
-                                    .toString(),
-                              ),
-                            ),
-                            Flexible(
                               flex: 3,
                               child: TableText(
-                                name: viewModel.departments[index].description!,
+                                leftPadding: 10,
+                                name: Utils().toTitleCase(
+                                  viewModel.branches[index].branchName!,
+                                ),
                               ),
                             ),
                             Flexible(
                               flex: 2,
                               child: TableText(
-                                leftPadding: 10,
-                                name: Utils().toTitleCase(
-                                  viewModel
-                                      .departments[index]
-                                      .branch!
-                                      .branchName!,
-                                ),
+                                name: viewModel.branches[index].address!,
+                              ),
+                            ),
+                            Flexible(
+                              flex: 2,
+                              child: TableText(
+                                name: viewModel.branches[index].city!,
+                              ),
+                            ),
+                            Flexible(
+                              flex: 2,
+                              child: TableText(
+                                name: viewModel.branches[index].phoneNumber!,
                               ),
                             ),
                             Flexible(
@@ -190,7 +177,7 @@ class DepartmentView extends StackedView<DepartmentViewModel> {
                               child: TableText(
                                 leftPadding: 10,
                                 name: Utils().toTitleCase(
-                                  viewModel.departments[index].status!,
+                                  viewModel.branches[index].status!,
                                 ),
                               ),
                             ),
@@ -212,8 +199,8 @@ class DepartmentView extends StackedView<DepartmentViewModel> {
                                     ontap: () {
                                       viewModel.appService.controller.add(
                                         NavigationItem(
-                                          "Update Department",
-                                          "/addDepartment",
+                                          "Add Branch",
+                                          "/addBranch",
                                           "sub",
                                         ),
                                       );
@@ -224,9 +211,8 @@ class DepartmentView extends StackedView<DepartmentViewModel> {
                                       ).push(
                                         MaterialPageRoute(
                                           builder: (BuildContext context) {
-                                            return AddDepartmentView(
-                                              department:
-                                                  viewModel.departments[index],
+                                            return AddBranchView(
+                                              branch: viewModel.branches[index],
                                             );
                                           },
                                         ),
@@ -248,6 +234,5 @@ class DepartmentView extends StackedView<DepartmentViewModel> {
   }
 
   @override
-  DepartmentViewModel viewModelBuilder(BuildContext context) =>
-      DepartmentViewModel();
+  BranchViewModel viewModelBuilder(BuildContext context) => BranchViewModel();
 }

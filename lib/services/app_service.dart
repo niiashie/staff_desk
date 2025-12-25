@@ -14,8 +14,11 @@ class AppService {
   final DialogService dialogService = locator<DialogService>();
   User? currentUser;
 
-  showMessage({String? title = "Whoops", String? message = ""}) {
-    dialogService.showCustomDialog(
+  Future<DialogResponse?> showMessage({
+    String? title = "Whoops",
+    String? message = "",
+  }) async {
+    return await dialogService.showCustomDialog(
       description: message,
       title: title,
 
@@ -39,4 +42,6 @@ class AppService {
     );
     return response;
   }
+
+  displayError() {}
 }

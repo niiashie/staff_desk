@@ -9,6 +9,10 @@ class Api {
   static const String employmentData = "/employment-record";
   static const String educationTraining = "/education-training";
   static const String referees = "/referees";
+  static const String role = "/roles";
+  static const String branch = "/branches";
   static const String beneficiaries = "/beneficiaries";
   static const String emergencyContact = "/emergencies";
+  static const String department = "/departments";
+  static const String users = "/users";
 }

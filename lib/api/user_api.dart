@@ -105,4 +105,58 @@ class UserApi extends BaseApi {
     var response = await put(url: Api.emergencyContact, data: params);
     return ApiResponse.parse(response);
   }
+
+  Future<ApiResponse> createRole(Map<String, dynamic> payload) async {
+    var response = await post(url: Api.role, data: payload);
+    return ApiResponse.parse(response);
+  }
+
+  Future<ApiResponse> updateRole(int id, Map<String, dynamic> payload) async {
+    var response = await put(url: "${Api.role}/$id", data: payload);
+    return ApiResponse.parse(response);
+  }
+
+  Future<ApiResponse> getRoles() async {
+    var response = await get(url: Api.role);
+    return ApiResponse.parse(response);
+  }
+
+  Future<ApiResponse> createBranch(Map<String, dynamic> payload) async {
+    var response = await post(url: Api.branch, data: payload);
+    return ApiResponse.parse(response);
+  }
+
+  Future<ApiResponse> getBranch() async {
+    var response = await get(url: Api.branch);
+    return ApiResponse.parse(response);
+  }
+
+  Future<ApiResponse> updateBranch(int id, Map<String, dynamic> payload) async {
+    var response = await put(url: "${Api.branch}/$id", data: payload);
+    return ApiResponse.parse(response);
+  }
+
+  Future<ApiResponse> createDepartment(Map<String, dynamic> payload) async {
+    var response = await post(url: Api.department, data: payload);
+    return ApiResponse.parse(response);
+  }
+
+  Future<ApiResponse> getDepartment() async {
+    var response = await get(url: Api.department);
+    return ApiResponse.parse(response);
+  }
+
+  Future<ApiResponse> updateDepartment(
+    int id,
+    Map<String, dynamic> payload,
+  ) async {
+    var response = await put(url: "${Api.department}/$id", data: payload);
+    return ApiResponse.parse(response);
+  }
+
+  Future<ApiResponse> getUsers({int? page = 1}) async {
+    Map<String, dynamic> params = {"per_page": 10, "page": page};
+    var response = await get(url: Api.users, queryParameters: params);
+    return ApiResponse.parse(response);
+  }
 }

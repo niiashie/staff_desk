@@ -1,6 +1,13 @@
+import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
+import 'package:leave_desk/api/user_api.dart';
 import 'package:leave_desk/app/locator.dart';
 import 'package:leave_desk/constants/images.dart';
+import 'package:leave_desk/models/api_response.dart';
+import 'package:leave_desk/models/branch.dart';
+import 'package:leave_desk/models/department.dart';
 import 'package:leave_desk/models/navigation_item.dart';
+import 'package:leave_desk/models/user.dart';
 import 'package:leave_desk/services/app_service.dart';
 import 'package:leave_desk/utils.dart';
 import 'package:stacked/stacked.dart' show BaseViewModel;
@@ -24,6 +31,8 @@ class BaseScreenViewModel extends BaseViewModel {
     AppImages.department,
     AppImages.retire,
   ];
+
+  UserApi userApi = UserApi();
   var appService = locator<AppService>();
   int selection = 0;
 
@@ -35,5 +44,62 @@ class BaseScreenViewModel extends BaseViewModel {
     appService.controller.add(NavigationItem(labels[select], route, "main"));
     Utils.sideMenuNavigationKey.currentState?.pushReplacementNamed(route);
     rebuildUi();
+  }
+
+  Future<List<Branch>> getBranches() async {
+    try {
+      ApiResponse response = await userApi.getBranch();
+      if (response.ok) {
+        List<Branch> branches = (response.data as List)
+            .map((e) => Branch.fromJson(e))
+            .toList();
+        return branches;
+      }
+    } on DioException catch (e) {
+      ApiResponse errorResponse = ApiResponse.parse(e.response);
+
+      appService.showMessage(message: errorResponse.message);
+      return [];
+    }
+    return [];
+  }
+
+  Future<List<Department>> getDepartments() async {
+    try {
+      ApiResponse response = await userApi.getDepartment();
+      if (response.ok) {
+        List<Department> departments = (response.data as List)
+            .map((e) => Department.fromJson(e))
+            .toList();
+        return departments;
+      }
+    } on DioException catch (e) {
+      ApiResponse errorResponse = ApiResponse.parse(e.response);
+
+      appService.showMessage(message: errorResponse.message);
+      return [];
+    }
+    return [];
+  }
+
+  Future<Map<String, dynamic>> getUsers({int? page = 1}) async {
+    debugPrint("page : $page");
+    try {
+      ApiResponse response = await userApi.getUsers(page: page);
+      if (response.ok) {
+        debugPrint("user response total pages : ${response.totalPages}");
+        List<User> users = (response.data as List)
+            .map((e) => User.fromJson(e))
+            .toList();
+
+        return {"users": users, "totalPages": response.totalPages ?? 1};
+      }
+    } on DioException catch (e) {
+      ApiResponse errorResponse = ApiResponse.parse(e.response);
+      appService.showMessage(message: errorResponse.message);
+      return {};
+    }
+
+    return {};
   }
 }
