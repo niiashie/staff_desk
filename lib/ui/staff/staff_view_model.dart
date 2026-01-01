@@ -14,9 +14,7 @@ class StaffViewModel extends BaseScreenViewModel {
     await getUsers();
     Map<String, dynamic> userObject = await getUsers();
     users = userObject['users'];
-    debugPrint(
-      "previous work places : ${users[0].employmentRecord!.previousWorkPlaces!.length}",
-    );
+    debugPrint("previous work places : ${users[0]}");
     totalUserPages = userObject['totalPages'];
     branches = await getBranches();
     setBusyForObject("loading", false);

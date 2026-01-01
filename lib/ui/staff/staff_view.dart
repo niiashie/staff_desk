@@ -11,6 +11,7 @@ import 'package:leave_desk/shared/table_text.dart';
 import 'package:leave_desk/shared/table_title.dart';
 import 'package:leave_desk/ui/department/widget/add_department_view.dart';
 import 'package:leave_desk/ui/staff/staff_view_model.dart';
+import 'package:leave_desk/ui/staff/widget/assign_staff_view.dart';
 import 'package:leave_desk/ui/staff/widget/view_staff_view.dart';
 import 'package:leave_desk/utils.dart';
 import 'package:stacked/stacked.dart';
@@ -292,6 +293,7 @@ class StaffView extends StackedView<StaffViewModel> {
                                               "sub",
                                             ),
                                           );
+
                                           Navigator.of(
                                             Utils
                                                 .sideMenuNavigationKey
@@ -307,7 +309,27 @@ class StaffView extends StackedView<StaffViewModel> {
                                           );
                                           break;
                                         case 'assign_branch':
-                                          // Handle assign branch
+                                          viewModel.appService.controller.add(
+                                            NavigationItem(
+                                              "Assign User",
+                                              "/assignUserView",
+                                              "sub",
+                                            ),
+                                          );
+
+                                          Navigator.of(
+                                            Utils
+                                                .sideMenuNavigationKey
+                                                .currentContext!,
+                                          ).push(
+                                            MaterialPageRoute(
+                                              builder: (BuildContext context) {
+                                                return AssignStaffView(
+                                                  user: viewModel.users[index],
+                                                );
+                                              },
+                                            ),
+                                          );
                                           break;
                                         case 'change_role':
                                           // Handle change role

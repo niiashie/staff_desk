@@ -129,4 +129,9 @@ class User {
       'account_is_setup': accountIsVerified,
     };
   }
+
+  @override
+  String toString() {
+    return toJson().toString();
+  }
 }

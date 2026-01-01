@@ -159,4 +159,9 @@ class UserApi extends BaseApi {
     var response = await get(url: Api.users, queryParameters: params);
     return ApiResponse.parse(response);
   }
+
+  Future<ApiResponse> assignUserToBranch(Map<String, dynamic> payload) async {
+    var response = await post(url: Api.assignUser, data: payload);
+    return ApiResponse.parse(response);
+  }
 }

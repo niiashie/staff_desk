@@ -409,21 +409,127 @@ class _ViewStaffViewState extends State<ViewStaffView> {
 
   Widget _buildEducationTrainingCard() {
     final education = widget.user.educationTraining!;
+    debugPrint('Education Training Data:');
+    debugPrint(
+      'Academic Qualifications: ${education.academicQualifications?.length}',
+    );
+    debugPrint('Professional Trainings: ${education.trainings?.length}');
+    if (education.academicQualifications != null) {
+      for (var qual in education.academicQualifications!) {
+        debugPrint(
+          'Academic Qualification: ${qual.qualification}, Institution: ${qual.institution}, Year: ${qual.year}',
+        );
+      }
+    }
+    if (education.trainings != null) {
+      for (var training in education.trainings!) {
+        debugPrint(
+          'Training: ${training.course}, Institution: ${training.institution}, Year: ${training.year}',
+        );
+      }
+    }
     return _buildExpandableCard(
       title: 'Education & Training',
       icon: Icons.school_outlined,
       color: Colors.teal,
       children: [
-        _buildInfoRow(
-          'Academic Qualifications',
-          education.numberOfAcademicQualifications ?? '0',
-          icon: Icons.school,
-        ),
-        _buildInfoRow(
-          'Professional Training',
-          education.numberOfProfessionalTraining ?? '0',
-          icon: Icons.workspace_premium,
-        ),
+        if (education.academicQualifications != null &&
+            education.academicQualifications!.isNotEmpty) ...[
+          _buildSectionTitle('Academic Qualifications'),
+          ...education.academicQualifications!.map(
+            (qualification) => Container(
+              margin: EdgeInsets.only(bottom: 12),
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.teal.shade50,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.teal.shade100),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.school, color: Colors.teal, size: 18),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          qualification.qualification ?? 'N/A',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 8),
+                  _buildInfoRow(
+                    'Institution',
+                    qualification.institution ?? 'N/A',
+                    compact: true,
+                  ),
+                  _buildInfoRow(
+                    'Year',
+                    qualification.year ?? 'N/A',
+                    compact: true,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+        if (education.trainings != null && education.trainings!.isNotEmpty) ...[
+          Divider(height: 24),
+          _buildSectionTitle('Professional Training'),
+          ...education.trainings!.map(
+            (training) => Container(
+              margin: EdgeInsets.only(bottom: 12),
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.teal.shade50,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.teal.shade100),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.workspace_premium,
+                        color: Colors.teal,
+                        size: 18,
+                      ),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          training.course ?? 'N/A',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 8),
+                  _buildInfoRow(
+                    'Institution',
+                    training.institution ?? 'N/A',
+                    compact: true,
+                  ),
+                  _buildInfoRow('Year', training.year ?? 'N/A', compact: true),
+                  _buildInfoRow(
+                    'Location',
+                    training.location ?? 'N/A',
+                    compact: true,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
         Divider(height: 24),
         _buildSectionTitle('Hobbies & Special Interests'),
         Padding(
