@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:leave_desk/models/branch.dart';
 import 'package:leave_desk/models/user.dart';
@@ -8,6 +9,9 @@ class StaffViewModel extends BaseScreenViewModel {
   List<Branch> branches = [];
   Branch? selectedBranch;
   int totalUserPages = 1, currentPage = 1;
+
+  // Stream controller for reloading staff data
+  final StreamController<bool> reloadController = StreamController<bool>.broadcast();
 
   fetchData() async {
     setBusyForObject("loading", true);
@@ -34,5 +38,11 @@ class StaffViewModel extends BaseScreenViewModel {
     selectedBranch = branch;
     notifyListeners();
     // Add filtering logic here if needed
+  }
+
+  @override
+  void dispose() {
+    reloadController.close();
+    super.dispose();
   }
 }

@@ -24,6 +24,13 @@ class DepartmentView extends StackedView<DepartmentViewModel> {
   @override
   void onViewModelReady(DepartmentViewModel viewModel) async {
     viewModel.fetchDepartments();
+
+    // Listen to reload stream from shared controller
+    viewModel.appService.departmentReloadController.stream.listen((_) {
+      debugPrint("Reload event received - Getting departments");
+      viewModel.fetchDepartments();
+    });
+
     super.onViewModelReady(viewModel);
   }
 

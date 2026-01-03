@@ -12,6 +12,7 @@ import 'package:leave_desk/ui/department/widget/add_department_view.dart';
 import 'package:leave_desk/ui/role/widget/add_role_view.dart';
 import 'package:leave_desk/ui/role/role_view.dart';
 import 'package:leave_desk/ui/staff/staff_view.dart';
+import 'package:leave_desk/ui/staff/widget/assign_staff_department_view.dart';
 import 'package:leave_desk/ui/staff/widget/assign_staff_view.dart';
 import 'package:leave_desk/ui/staff/widget/view_staff_view.dart';
 import 'package:leave_desk/utils.dart';
@@ -99,6 +100,9 @@ class BaseScreenView extends StackedView<BaseScreenViewModel> {
                                 break;
                               case '/assignUserView':
                                 page = AssignStaffView(user: User());
+                                break;
+                              case '/assignDepartmentView':
+                                page = AssignStaffDepartmentView(user: User());
                                 break;
                               default:
                                 page = const DashboardView();

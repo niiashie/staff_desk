@@ -24,6 +24,13 @@ class BranchView extends StackedView<BranchViewModel> {
   @override
   void onViewModelReady(BranchViewModel viewModel) async {
     viewModel.getBranches();
+
+    // Listen to reload stream from shared controller
+    viewModel.appService.branchReloadController.stream.listen((_) {
+      debugPrint("Reload event received - Getting branches");
+      viewModel.getBranches();
+    });
+
     super.onViewModelReady(viewModel);
   }
 

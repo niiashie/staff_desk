@@ -62,7 +62,7 @@ class DepartmentViewModel extends BaseScreenViewModel {
 
   init({Department? selectedDepartment}) async {
     setBusyForObject("loading", true);
-    await getBranches();
+    branches = await getBranches();
     setBusyForObject("loading", false);
     if (selectedDepartment != null) {
       nameController.text = selectedDepartment.name ?? '';
@@ -88,6 +88,10 @@ class DepartmentViewModel extends BaseScreenViewModel {
         setBusyForObject("addDepartmentLoader", true);
         ApiResponse response = await userApi.createDepartment(payload);
         if (response.ok) {
+          // Notify listeners to reload using shared controller
+          appService.departmentReloadController.add(true);
+          debugPrint("Department reload event emitted after create");
+
           appService.showMessage(
             title: "Success",
             message:
@@ -116,6 +120,10 @@ class DepartmentViewModel extends BaseScreenViewModel {
           payload,
         );
         if (response.ok) {
+          // Notify listeners to reload using shared controller
+          appService.departmentReloadController.add(true);
+          debugPrint("Department reload event emitted after update");
+
           appService.showMessage(
             title: "Success",
             message:

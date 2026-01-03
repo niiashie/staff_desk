@@ -5,7 +5,9 @@ import 'package:leave_desk/shared/custom_button.dart';
 import 'package:leave_desk/shared/custom_form_field.dart';
 import 'package:leave_desk/shared/page_title.dart';
 import 'package:leave_desk/ui/branch/branch_view_model.dart';
+import 'package:leave_desk/utils.dart';
 import 'package:stacked/stacked.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class AddBranchView extends StackedView<BranchViewModel> {
   final Branch? branch;
@@ -159,7 +161,7 @@ class AddBranchView extends StackedView<BranchViewModel> {
                             ontap: () {
                               branch != null
                                   ? viewModel.updateBranch(branch!.id)
-                                  : viewModel.clearAllFields();
+                                  : viewModel.submitBranch();
                               //viewModel.submitBranch();
                             },
                           ),

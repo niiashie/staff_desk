@@ -31,11 +31,13 @@ class _AppBarWidgetState extends State<AppBarWidget> {
   @override
   void initState() {
     listenToBreadCrumbMenuItemChange();
-    // selectedCompanyBranch =
-    //     "${appService.user!.warehouses![0].role}_${appService.user!.warehouses![0].warehouse!.id}";
-    // appService.selectedWarehouseId =
-    //     appService.user!.warehouses![0].warehouse!.id.toString();
-    // appService.selectedWarehouseRole = appService.user!.warehouses![0].role;
+
+    // Initialize selected branch to the first branch if available
+    if (appService.currentUser?.branches != null &&
+        appService.currentUser!.branches!.isNotEmpty) {
+      appService.setSelectedBranch(appService.currentUser!.branches![0]);
+    }
+
     appService.controller.add(
       NavigationItem("Dashbiard", "/dashboard", "main"),
     );
@@ -63,7 +65,16 @@ class _AppBarWidgetState extends State<AppBarWidget> {
               if (value.type == 'sub') {
                 menuItems.add(value);
               } else if (value.type == "pop") {
-                removeMenuItemsUntilIndex(int.parse(value.route));
+                // Handle pop with safe parsing
+                final index = int.tryParse(value.route ?? '');
+                if (index != null) {
+                  removeMenuItemsUntilIndex(index);
+                } else {
+                  // If no valid index, pop to the last main item
+                  if (menuItems.length > 1) {
+                    menuItems.removeLast();
+                  }
+                }
               } else {
                 menuItems.clear();
                 menuItems.add(value);
@@ -74,6 +85,7 @@ class _AppBarWidgetState extends State<AppBarWidget> {
   }
 
   removeMenuItemsUntilIndex(index) {
+    debugPrint("Pop is called");
     //popUntilIndex(index);
     while (menuItems.length > index + 1) {
       menuItems.removeLast();
@@ -109,6 +121,58 @@ class _AppBarWidgetState extends State<AppBarWidget> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  // Branch Dropdown
+                  if (appService.currentUser?.branches != null &&
+                      appService.currentUser!.branches!.isNotEmpty) ...[
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.business, size: 15, color: Colors.grey[600]),
+                        const SizedBox(width: 10),
+                        DropdownButtonHideUnderline(
+                          child: DropdownButton<int>(
+                            hint: Text(
+                              'Select Branch',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            value:
+                                appService.selectedBranch?.id ??
+                                appService.currentUser!.branches![0].id,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                            items: appService.currentUser!.branches!.map((
+                              branch,
+                            ) {
+                              return DropdownMenuItem<int>(
+                                value: branch.id,
+                                child: Text(
+                                  branch.branchName ?? '',
+                                  style: TextStyle(fontSize: 14),
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (int? value) {
+                              if (value != null) {
+                                final selectedBranch = appService
+                                    .currentUser!
+                                    .branches!
+                                    .firstWhere((b) => b.id == value);
+                                setState(() {
+                                  appService.setSelectedBranch(selectedBranch);
+                                });
+                              }
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(width: 12),
+                  ],
                   Icon(Icons.calendar_month, size: 15, color: Colors.grey[600]),
                   const SizedBox(width: 5),
                   Text(

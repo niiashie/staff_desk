@@ -141,8 +141,12 @@ class UserApi extends BaseApi {
     return ApiResponse.parse(response);
   }
 
-  Future<ApiResponse> getDepartment() async {
-    var response = await get(url: Api.department);
+  Future<ApiResponse> getDepartment({String? branchId}) async {
+    Map<String, dynamic> queryParams = {};
+    if (branchId != null) {
+      queryParams['branch_id'] = branchId;
+    }
+    var response = await get(url: Api.department, queryParameters: queryParams);
     return ApiResponse.parse(response);
   }
 
@@ -162,6 +166,27 @@ class UserApi extends BaseApi {
 
   Future<ApiResponse> assignUserToBranch(Map<String, dynamic> payload) async {
     var response = await post(url: Api.assignUser, data: payload);
+    return ApiResponse.parse(response);
+  }
+
+  Future<ApiResponse> unassignUserFromBranch(
+    Map<String, dynamic> payload,
+  ) async {
+    var response = await post(url: Api.unassignUser, data: payload);
+    return ApiResponse.parse(response);
+  }
+
+  Future<ApiResponse> assignUserToDepartment(
+    Map<String, dynamic> payload,
+  ) async {
+    var response = await post(url: Api.assignDepartment, data: payload);
+    return ApiResponse.parse(response);
+  }
+
+  Future<ApiResponse> unassignUserFromDepartment(
+    Map<String, dynamic> payload,
+  ) async {
+    var response = await post(url: Api.unassignDepartment, data: payload);
     return ApiResponse.parse(response);
   }
 }

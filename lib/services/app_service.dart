@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:leave_desk/app/dialog.dart';
 import 'package:leave_desk/app/locator.dart';
+import 'package:leave_desk/models/branch.dart';
 import 'package:leave_desk/models/navigation_item.dart';
 import 'package:leave_desk/models/user.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -11,8 +12,15 @@ class AppService {
       StreamController<String>.broadcast();
   StreamController<NavigationItem> controller =
       StreamController<NavigationItem>.broadcast();
+  StreamController<bool> branchReloadController =
+      StreamController<bool>.broadcast();
+  StreamController<bool> departmentReloadController =
+      StreamController<bool>.broadcast();
+  StreamController<Branch?> selectedBranchController =
+      StreamController<Branch?>.broadcast();
   final DialogService dialogService = locator<DialogService>();
   User? currentUser;
+  Branch? selectedBranch;
 
   Future<DialogResponse?> showMessage({
     String? title = "Whoops",
@@ -44,4 +52,9 @@ class AppService {
   }
 
   displayError() {}
+
+  void setSelectedBranch(Branch? branch) {
+    selectedBranch = branch;
+    selectedBranchController.add(branch);
+  }
 }

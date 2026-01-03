@@ -42,10 +42,17 @@ class AuthenticationViewModel extends BaseViewModel {
           final isMobile = screenWidth < 600;
 
           if (appService.currentUser!.accountIsVerified!) {
-            Navigator.of(
-              // ignore: use_build_context_synchronously
-              context,
-            ).pushReplacementNamed(Routes.base);
+            if (appService.currentUser!.branches!.isEmpty) {
+              appService.showMessage(
+                title: "No Branch",
+                message: "Contact admin to assign you to a branch to proceed",
+              );
+            } else {
+              Navigator.of(
+                // ignore: use_build_context_synchronously
+                context,
+              ).pushReplacementNamed(Routes.base);
+            }
           } else {
             Navigator.of(
               // ignore: use_build_context_synchronously
@@ -56,6 +63,7 @@ class AuthenticationViewModel extends BaseViewModel {
           }
         }
       } on DioException catch (e) {
+        debugPrint("error response : ${e.response!.data}");
         ApiResponse errorResponse = ApiResponse.parse(e.response);
         setBusyForObject("loginButton", false);
 

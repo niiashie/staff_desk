@@ -4,7 +4,9 @@ import 'package:leave_desk/api/user_api.dart';
 import 'package:leave_desk/app/locator.dart';
 import 'package:leave_desk/models/api_response.dart';
 import 'package:leave_desk/models/branch.dart';
+import 'package:leave_desk/models/navigation_item.dart';
 import 'package:leave_desk/services/app_service.dart';
+import 'package:leave_desk/utils.dart';
 import 'package:stacked/stacked.dart';
 
 class BranchViewModel extends BaseViewModel {
@@ -52,10 +54,19 @@ class BranchViewModel extends BaseViewModel {
         if (response.ok) {
           clearAllFields();
           setBusyForObject("addBranchLoader", false);
+
+          appService.controller.add(NavigationItem("", "/branches", "pop"));
+
+          // Notify listeners to reload using shared controller
+          appService.branchReloadController.add(true);
+          debugPrint("Branch reload event emitted after create");
+
           appService.showMessage(
             title: "Success",
             message: "Branch successfully created",
           );
+          // ignore: use_build_context_synchronously
+          Navigator.of(Utils.sideMenuNavigationKey.currentState!.context).pop();
         }
       } on DioException catch (e) {
         setBusyForObject("addBranchLoader", false);
@@ -84,6 +95,11 @@ class BranchViewModel extends BaseViewModel {
         if (response.ok) {
           clearAllFields();
           setBusyForObject("addBranchLoader", false);
+
+          // Notify listeners to reload using shared controller
+          appService.branchReloadController.add(true);
+          debugPrint("Branch reload event emitted after update");
+
           appService.showMessage(
             title: "Success",
             message: "Branch successfully updated",

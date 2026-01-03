@@ -1,4 +1,5 @@
 import 'package:leave_desk/models/branch.dart';
+import 'package:leave_desk/models/department.dart';
 import 'package:leave_desk/models/role.dart';
 
 import 'beneficiary.dart';
@@ -29,6 +30,7 @@ class User {
   List<Beneficiary>? beneficiaries;
   List<EmergencyContact>? emergencies;
   List<Branch>? branches;
+  List<Department>? departments;
 
   User({
     this.id,
@@ -49,6 +51,7 @@ class User {
     this.educationTraining,
     this.referees,
     this.beneficiaries,
+    this.departments,
     this.emergencies,
   });
 
@@ -96,6 +99,11 @@ class User {
                 .map(
                   (e) => EmergencyContact.fromJson(e as Map<String, dynamic>),
                 )
+                .toList()
+          : null,
+      departments: userData['departments'] != null
+          ? (userData['departments'] as List)
+                .map((e) => Department.fromJson(e as Map<String, dynamic>))
                 .toList()
           : null,
       branches: userData['branches'] != null

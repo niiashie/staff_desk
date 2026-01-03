@@ -16,4 +16,7 @@ class Api {
   static const String department = "/departments";
   static const String users = "/users";
   static const String assignUser = "/branches/assign-user";
+  static const String unassignUser = "/branches/unassign-user";
+  static const String assignDepartment = "/departments/assign-users";
+  static const String unassignDepartment = "/departments/unassign-users";
 }

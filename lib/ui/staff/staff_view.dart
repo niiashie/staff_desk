@@ -11,6 +11,7 @@ import 'package:leave_desk/shared/table_text.dart';
 import 'package:leave_desk/shared/table_title.dart';
 import 'package:leave_desk/ui/department/widget/add_department_view.dart';
 import 'package:leave_desk/ui/staff/staff_view_model.dart';
+import 'package:leave_desk/ui/staff/widget/assign_staff_department_view.dart';
 import 'package:leave_desk/ui/staff/widget/assign_staff_view.dart';
 import 'package:leave_desk/ui/staff/widget/view_staff_view.dart';
 import 'package:leave_desk/utils.dart';
@@ -28,6 +29,12 @@ class StaffView extends StackedView<StaffViewModel> {
   @override
   void onViewModelReady(StaffViewModel viewModel) async {
     viewModel.fetchData();
+
+    // Listen to reload stream
+    viewModel.reloadController.stream.listen((_) {
+      viewModel.fetchData();
+    });
+
     super.onViewModelReady(viewModel);
   }
 
@@ -326,19 +333,41 @@ class StaffView extends StackedView<StaffViewModel> {
                                               builder: (BuildContext context) {
                                                 return AssignStaffView(
                                                   user: viewModel.users[index],
+                                                  reloadController: viewModel
+                                                      .reloadController,
                                                 );
                                               },
                                             ),
                                           );
                                           break;
-                                        case 'change_role':
-                                          // Handle change role
-                                          break;
+
                                         case 'leave_history':
                                           // Handle leave history
                                           break;
                                         case 'assign_department':
-                                          // Handle assign department
+                                          viewModel.appService.controller.add(
+                                            NavigationItem(
+                                              "Assign Department",
+                                              "/assignDepartmentView",
+                                              "sub",
+                                            ),
+                                          );
+
+                                          Navigator.of(
+                                            Utils
+                                                .sideMenuNavigationKey
+                                                .currentContext!,
+                                          ).push(
+                                            MaterialPageRoute(
+                                              builder: (BuildContext context) {
+                                                return AssignStaffDepartmentView(
+                                                  user: viewModel.users[index],
+                                                  reloadController: viewModel
+                                                      .reloadController,
+                                                );
+                                              },
+                                            ),
+                                          );
                                           break;
                                       }
                                     },
@@ -363,19 +392,19 @@ class StaffView extends StackedView<StaffViewModel> {
                                           ],
                                         ),
                                       ),
-                                      PopupMenuItem<String>(
-                                        value: 'change_role',
-                                        child: Row(
-                                          children: [
-                                            Icon(
-                                              Icons.admin_panel_settings,
-                                              size: 18,
-                                            ),
-                                            SizedBox(width: 10),
-                                            Text('Change Role'),
-                                          ],
-                                        ),
-                                      ),
+                                      // PopupMenuItem<String>(
+                                      //   value: 'change_role',
+                                      //   child: Row(
+                                      //     children: [
+                                      //       Icon(
+                                      //         Icons.admin_panel_settings,
+                                      //         size: 18,
+                                      //       ),
+                                      //       SizedBox(width: 10),
+                                      //       Text('Change Role'),
+                                      //     ],
+                                      //   ),
+                                      // ),
                                       PopupMenuItem<String>(
                                         value: 'leave_history',
                                         child: Row(
