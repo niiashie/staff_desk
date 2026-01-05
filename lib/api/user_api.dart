@@ -158,8 +158,11 @@ class UserApi extends BaseApi {
     return ApiResponse.parse(response);
   }
 
-  Future<ApiResponse> getUsers({int? page = 1}) async {
+  Future<ApiResponse> getUsers({int? page = 1, String? branchId}) async {
     Map<String, dynamic> params = {"per_page": 10, "page": page};
+    if (branchId != null) {
+      params['branch_id'] = branchId;
+    }
     var response = await get(url: Api.users, queryParameters: params);
     return ApiResponse.parse(response);
   }
@@ -187,6 +190,30 @@ class UserApi extends BaseApi {
     Map<String, dynamic> payload,
   ) async {
     var response = await post(url: Api.unassignDepartment, data: payload);
+    return ApiResponse.parse(response);
+  }
+
+  Future<ApiResponse> assignManagerToDepartment(
+    Map<String, dynamic> payload,
+  ) async {
+    var response = await post(url: Api.assignManager, data: payload);
+    return ApiResponse.parse(response);
+  }
+
+  Future<ApiResponse> unassignManagerFromDepartment(
+    Map<String, dynamic> payload,
+  ) async {
+    var response = await post(url: Api.unassignManager, data: payload);
+    return ApiResponse.parse(response);
+  }
+
+  Future<ApiResponse> createStaffLeave(Map<String, dynamic> payload) async {
+    var response = await post(url: Api.leave, data: payload);
+    return ApiResponse.parse(response);
+  }
+
+  Future<ApiResponse> updateStaffLeave(Map<String, dynamic> payload) async {
+    var response = await put(url: Api.leave, data: payload);
     return ApiResponse.parse(response);
   }
 }

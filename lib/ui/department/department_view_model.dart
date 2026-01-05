@@ -1,13 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:leave_desk/api/user_api.dart';
-import 'package:leave_desk/app/locator.dart';
 import 'package:leave_desk/models/api_response.dart';
 import 'package:leave_desk/models/branch.dart';
 import 'package:leave_desk/models/department.dart';
-import 'package:leave_desk/services/app_service.dart';
 import 'package:leave_desk/ui/base/base_screen_view_model.dart';
-import 'package:stacked/stacked.dart';
 
 class DepartmentViewModel extends BaseScreenViewModel {
   final GlobalKey<FormState> addDepartmentFormKey = GlobalKey<FormState>();
@@ -28,16 +24,6 @@ class DepartmentViewModel extends BaseScreenViewModel {
     notifyListeners();
   }
 
-  void setSelectedBranch(int? branchId) {
-    selectedBranchId = branchId;
-    selectedBranch = branches.where((e) => e.id == branchId).first;
-    notifyListeners();
-  }
-
-  int? getSelectedBranchId() {
-    return selectedBranchId;
-  }
-
   Map<String, dynamic> createDepartmentPayload() {
     return {
       "name": nameController.text.trim(),
@@ -46,7 +32,7 @@ class DepartmentViewModel extends BaseScreenViewModel {
           ? null
           : descriptionController.text.trim(),
       "manager_id": null,
-      "branch_id": selectedBranchId,
+      "branch_id": appService.selectedBranch!.id,
       "status": isActive ? "active" : "inactive",
     };
   }
@@ -78,6 +64,7 @@ class DepartmentViewModel extends BaseScreenViewModel {
   fetchDepartments() async {
     setBusyForObject("loading", true);
     departments = await getDepartments();
+
     setBusyForObject("loading", false);
   }
 
@@ -95,7 +82,7 @@ class DepartmentViewModel extends BaseScreenViewModel {
           appService.showMessage(
             title: "Success",
             message:
-                "Successfully created department in ${selectedBranch!.branchName}",
+                "Successfully created department in ${appService.selectedBranch!.branchName}",
           );
           clearAddDepartmentForm();
           setBusyForObject("addDepartmentLoader", false);

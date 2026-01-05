@@ -68,6 +68,7 @@ class BaseScreenViewModel extends BaseViewModel {
     try {
       ApiResponse response = await userApi.getDepartment();
       if (response.ok) {
+        debugPrint("departments : ${response.data}");
         List<Department> departments = (response.data as List)
             .map((e) => Department.fromJson(e))
             .toList();
@@ -87,7 +88,7 @@ class BaseScreenViewModel extends BaseViewModel {
     try {
       ApiResponse response = await userApi.getUsers(page: page);
       if (response.ok) {
-        debugPrint("user response total pages : ${response.totalPages}");
+        debugPrint("response : ${response.data}");
         List<User> users = (response.data as List)
             .map((e) => User.fromJson(e))
             .toList();

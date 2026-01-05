@@ -9,11 +9,14 @@ import 'package:leave_desk/ui/branch/widget/add_branch_view.dart';
 import 'package:leave_desk/ui/dashboard/dashboard_view.dart';
 import 'package:leave_desk/ui/department/department_view.dart';
 import 'package:leave_desk/ui/department/widget/add_department_view.dart';
+import 'package:leave_desk/ui/department/widget/assign_department_manager.dart';
+import 'package:leave_desk/ui/department/widget/department_members.dart';
 import 'package:leave_desk/ui/role/widget/add_role_view.dart';
 import 'package:leave_desk/ui/role/role_view.dart';
 import 'package:leave_desk/ui/staff/staff_view.dart';
 import 'package:leave_desk/ui/staff/widget/assign_staff_department_view.dart';
 import 'package:leave_desk/ui/staff/widget/assign_staff_view.dart';
+import 'package:leave_desk/ui/staff/widget/staff_leave_info_view.dart';
 import 'package:leave_desk/ui/staff/widget/view_staff_view.dart';
 import 'package:leave_desk/utils.dart';
 import 'package:stacked/stacked.dart';
@@ -88,6 +91,15 @@ class BaseScreenView extends StackedView<BaseScreenViewModel> {
                                 break;
                               case '/addDepartment':
                                 page = const AddDepartmentView();
+                                break;
+                              case '/assignDepartment':
+                                page = const AssignDepartmentManager();
+                                break;
+                              case '/leaveInfo':
+                                page = StaffLeaveInfoView(user: User());
+                                break;
+                              case '/departmentMembers':
+                                page = DepartmentMembers();
                                 break;
                               case '/addBranch':
                                 page = const AddBranchView();

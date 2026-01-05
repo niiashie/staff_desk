@@ -13,6 +13,7 @@ import 'package:leave_desk/ui/department/widget/add_department_view.dart';
 import 'package:leave_desk/ui/staff/staff_view_model.dart';
 import 'package:leave_desk/ui/staff/widget/assign_staff_department_view.dart';
 import 'package:leave_desk/ui/staff/widget/assign_staff_view.dart';
+import 'package:leave_desk/ui/staff/widget/staff_leave_info_view.dart';
 import 'package:leave_desk/ui/staff/widget/view_staff_view.dart';
 import 'package:leave_desk/utils.dart';
 import 'package:stacked/stacked.dart';
@@ -193,9 +194,13 @@ class StaffView extends StackedView<StaffViewModel> {
                             ),
                             Flexible(
                               flex: 1,
+                              child: TableTitle(leftPadding: 10, name: "Data"),
+                            ),
+                            Flexible(
+                              flex: 1,
                               child: TableTitle(
                                 leftPadding: 10,
-                                name: "Completeness",
+                                name: "Leave Days",
                               ),
                             ),
                             Flexible(flex: 1, child: SizedBox()),
@@ -260,6 +265,16 @@ class StaffView extends StackedView<StaffViewModel> {
                                 leftPadding: 10,
                                 name:
                                     "${viewModel.users[index].percentageCompleteness} %",
+                              ),
+                            ),
+                            Flexible(
+                              flex: 1,
+                              child: TableText(
+                                leftPadding: 10,
+                                name: viewModel.users[index].leave != null
+                                    ? viewModel.users[index].leave!.daysLeft
+                                          .toString()
+                                    : "N/A",
                               ),
                             ),
                             Flexible(
@@ -342,7 +357,29 @@ class StaffView extends StackedView<StaffViewModel> {
                                           break;
 
                                         case 'leave_history':
-                                          // Handle leave history
+                                          viewModel.appService.controller.add(
+                                            NavigationItem(
+                                              "Staff Leave Info",
+                                              "/leaveInfo",
+                                              "sub",
+                                            ),
+                                          );
+
+                                          Navigator.of(
+                                            Utils
+                                                .sideMenuNavigationKey
+                                                .currentContext!,
+                                          ).push(
+                                            MaterialPageRoute(
+                                              builder: (BuildContext context) {
+                                                return StaffLeaveInfoView(
+                                                  user: viewModel.users[index],
+                                                  reloadController: viewModel
+                                                      .reloadController,
+                                                );
+                                              },
+                                            ),
+                                          );
                                           break;
                                         case 'assign_department':
                                           viewModel.appService.controller.add(
@@ -409,9 +446,9 @@ class StaffView extends StackedView<StaffViewModel> {
                                         value: 'leave_history',
                                         child: Row(
                                           children: [
-                                            Icon(Icons.history, size: 18),
+                                            Icon(Icons.work_outline, size: 18),
                                             SizedBox(width: 10),
-                                            Text('Leave History'),
+                                            Text('Work Leave'),
                                           ],
                                         ),
                                       ),

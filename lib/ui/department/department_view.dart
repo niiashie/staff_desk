@@ -9,6 +9,8 @@ import 'package:leave_desk/shared/table_text.dart';
 import 'package:leave_desk/shared/table_title.dart';
 import 'package:leave_desk/ui/department/department_view_model.dart';
 import 'package:leave_desk/ui/department/widget/add_department_view.dart';
+import 'package:leave_desk/ui/department/widget/assign_department_manager.dart';
+import 'package:leave_desk/ui/department/widget/department_members.dart';
 import 'package:leave_desk/utils.dart';
 import 'package:stacked/stacked.dart';
 
@@ -131,7 +133,7 @@ class DepartmentView extends StackedView<DepartmentViewModel> {
                               flex: 2,
                               child: TableTitle(
                                 leftPadding: 10,
-                                name: "Branch",
+                                name: "Manager",
                               ),
                             ),
                             Flexible(
@@ -184,12 +186,14 @@ class DepartmentView extends StackedView<DepartmentViewModel> {
                               flex: 2,
                               child: TableText(
                                 leftPadding: 10,
-                                name: Utils().toTitleCase(
-                                  viewModel
-                                      .departments[index]
-                                      .branch!
-                                      .branchName!,
-                                ),
+                                name:
+                                    viewModel.departments[index].managerId !=
+                                        null
+                                    ? viewModel
+                                          .departments[index]
+                                          .manager!
+                                          .name!
+                                    : "N/A",
                               ),
                             ),
                             Flexible(
@@ -205,40 +209,138 @@ class DepartmentView extends StackedView<DepartmentViewModel> {
                               flex: 1,
                               child: SizedBox(
                                 child: Center(
-                                  child: CustomButton(
-                                    width: 30,
-                                    height: 30,
-                                    elevation: 2,
-                                    borderRadius: 7,
-                                    color: Colors.blueAccent,
-                                    title: Icon(
-                                      Icons.edit,
-                                      color: Colors.white,
-                                      size: 11,
+                                  child: PopupMenuButton<String>(
+                                    icon: Container(
+                                      width: 30,
+                                      height: 30,
+                                      decoration: BoxDecoration(
+                                        color: Colors.blueAccent,
+                                        borderRadius: BorderRadius.circular(7),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(
+                                              alpha: 0.2,
+                                            ),
+                                            blurRadius: 4,
+                                            offset: Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Icon(
+                                        Icons.more_vert,
+                                        color: Colors.white,
+                                        size: 16,
+                                      ),
                                     ),
-                                    ontap: () {
-                                      viewModel.appService.controller.add(
-                                        NavigationItem(
-                                          "Update Department",
-                                          "/addDepartment",
-                                          "sub",
-                                        ),
-                                      );
-                                      Navigator.of(
-                                        Utils
-                                            .sideMenuNavigationKey
-                                            .currentContext!,
-                                      ).push(
-                                        MaterialPageRoute(
-                                          builder: (BuildContext context) {
-                                            return AddDepartmentView(
-                                              department:
-                                                  viewModel.departments[index],
-                                            );
-                                          },
-                                        ),
-                                      );
+                                    onSelected: (String value) {
+                                      // Handle menu selection
+                                      switch (value) {
+                                        case 'edit':
+                                          viewModel.appService.controller.add(
+                                            NavigationItem(
+                                              "Update Department",
+                                              "/addDepartment",
+                                              "sub",
+                                            ),
+                                          );
+                                          Navigator.of(
+                                            Utils
+                                                .sideMenuNavigationKey
+                                                .currentContext!,
+                                          ).push(
+                                            MaterialPageRoute(
+                                              builder: (BuildContext context) {
+                                                return AddDepartmentView(
+                                                  department: viewModel
+                                                      .departments[index],
+                                                );
+                                              },
+                                            ),
+                                          );
+                                          break;
+                                        case 'assign_manager':
+                                          viewModel.appService.controller.add(
+                                            NavigationItem(
+                                              "Assign Manager",
+                                              "/assignDepartment",
+                                              "sub",
+                                            ),
+                                          );
+                                          Navigator.of(
+                                            Utils
+                                                .sideMenuNavigationKey
+                                                .currentContext!,
+                                          ).push(
+                                            MaterialPageRoute(
+                                              builder: (BuildContext context) {
+                                                return AssignDepartmentManager(
+                                                  department: viewModel
+                                                      .departments[index],
+                                                  reloadController: viewModel
+                                                      .appService
+                                                      .departmentReloadController,
+                                                );
+                                              },
+                                            ),
+                                          );
+                                          break;
+                                        case 'view_members':
+                                          viewModel.appService.controller.add(
+                                            NavigationItem(
+                                              "Members",
+                                              "/departmentMembers",
+                                              "sub",
+                                            ),
+                                          );
+                                          Navigator.of(
+                                            Utils
+                                                .sideMenuNavigationKey
+                                                .currentContext!,
+                                          ).push(
+                                            MaterialPageRoute(
+                                              builder: (BuildContext context) {
+                                                return DepartmentMembers(
+                                                  department: viewModel
+                                                      .departments[index],
+                                                );
+                                              },
+                                            ),
+                                          );
+                                          break;
+                                      }
                                     },
+                                    itemBuilder: (BuildContext context) => [
+                                      PopupMenuItem<String>(
+                                        value: 'edit',
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.edit, size: 18),
+                                            SizedBox(width: 10),
+                                            Text('Edit'),
+                                          ],
+                                        ),
+                                      ),
+                                      PopupMenuItem<String>(
+                                        value: 'view_members',
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.person, size: 18),
+                                            SizedBox(width: 10),
+                                            Text('View Members'),
+                                          ],
+                                        ),
+                                      ),
+                                      PopupMenuItem<String>(
+                                        value: 'assign_manager',
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.person_add, size: 18),
+                                            SizedBox(width: 10),
+                                            Text('Assign Manager'),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),

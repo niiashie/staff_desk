@@ -8,6 +8,7 @@ import 'education_training.dart';
 import 'emergency_contact.dart';
 import 'employment_record.dart';
 import 'family_data.dart';
+import 'leave.dart';
 import 'referee.dart';
 
 class User {
@@ -31,6 +32,7 @@ class User {
   List<EmergencyContact>? emergencies;
   List<Branch>? branches;
   List<Department>? departments;
+  Leave? leave;
 
   User({
     this.id,
@@ -53,6 +55,7 @@ class User {
     this.beneficiaries,
     this.departments,
     this.emergencies,
+    this.leave,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -111,6 +114,9 @@ class User {
                 .map((e) => Branch.fromJson(e as Map<String, dynamic>))
                 .toList()
           : null,
+      leave: userData['leave'] != null
+          ? Leave.fromJson(userData['leave'])
+          : null,
     );
   }
 
@@ -131,6 +137,7 @@ class User {
         'referees': referees?.map((e) => e.toJson()).toList(),
         'beneficiaries': beneficiaries?.map((e) => e.toJson()).toList(),
         'emergencies': emergencies?.map((e) => e.toJson()).toList(),
+        'leave': leave?.toJson(),
       },
       'access_token': accessToken,
       'token_type': tokenType,

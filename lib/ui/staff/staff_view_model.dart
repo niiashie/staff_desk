@@ -11,12 +11,14 @@ class StaffViewModel extends BaseScreenViewModel {
   int totalUserPages = 1, currentPage = 1;
 
   // Stream controller for reloading staff data
-  final StreamController<bool> reloadController = StreamController<bool>.broadcast();
+  final StreamController<bool> reloadController =
+      StreamController<bool>.broadcast();
 
   fetchData() async {
     setBusyForObject("loading", true);
     await getUsers();
     Map<String, dynamic> userObject = await getUsers();
+
     users = userObject['users'];
     debugPrint("previous work places : ${users[0]}");
     totalUserPages = userObject['totalPages'];
