@@ -108,10 +108,7 @@ class LoginView extends StackedView<AuthenticationViewModel> {
                               validator: (String? value) {
                                 if (value!.isEmpty) {
                                   return "PIN required.";
-                                } else if (!Utils().isNumeric(value)) {
-                                  return "PIN must be numeric";
                                 }
-
                                 return null;
                               },
                               prefixIcon: Image.asset(

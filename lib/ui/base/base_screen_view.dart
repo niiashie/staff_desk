@@ -7,6 +7,7 @@ import 'package:leave_desk/ui/base/widget/side_menu.dart';
 import 'package:leave_desk/ui/branch/branch_view.dart';
 import 'package:leave_desk/ui/branch/widget/add_branch_view.dart';
 import 'package:leave_desk/ui/dashboard/dashboard_view.dart';
+import 'package:leave_desk/ui/dashboard/widget/edit_staff_info_view.dart';
 import 'package:leave_desk/ui/department/department_view.dart';
 import 'package:leave_desk/ui/department/widget/add_department_view.dart';
 import 'package:leave_desk/ui/department/widget/assign_department_manager.dart';
@@ -32,7 +33,7 @@ class BaseScreenView extends StackedView<BaseScreenViewModel> {
 
   @override
   void onViewModelReady(BaseScreenViewModel viewModel) async {
-    //viewModel.init();
+    viewModel.init();
     super.onViewModelReady(viewModel);
   }
 
@@ -106,6 +107,9 @@ class BaseScreenView extends StackedView<BaseScreenViewModel> {
                                 break;
                               case '/branches':
                                 page = const BranchView();
+                                break;
+                              case '/editStaff':
+                                page = EditStaffInfoView();
                                 break;
                               case '/viewUser':
                                 page = ViewStaffView(user: User());

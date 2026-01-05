@@ -13,24 +13,8 @@ import 'package:leave_desk/utils.dart';
 import 'package:stacked/stacked.dart' show BaseViewModel;
 
 class BaseScreenViewModel extends BaseViewModel {
-  List<String> labels = [
-    "Dashboard",
-    "Staff",
-    "Leave",
-    "Branches",
-    "Roles",
-    "Departments",
-    "Retirement",
-  ];
-  List<String> icons = [
-    AppImages.dashboard,
-    AppImages.staff,
-    AppImages.leave,
-    AppImages.branch,
-    AppImages.roles,
-    AppImages.department,
-    AppImages.retire,
-  ];
+  List<String> labels = [];
+  List<String> icons = [];
 
   UserApi userApi = UserApi();
   var appService = locator<AppService>();
@@ -43,6 +27,43 @@ class BaseScreenViewModel extends BaseViewModel {
     // getSelection(selection);
     appService.controller.add(NavigationItem(labels[select], route, "main"));
     Utils.sideMenuNavigationKey.currentState?.pushReplacementNamed(route);
+    rebuildUi();
+  }
+
+  populateAdminSideMenus() {
+    labels = [
+      "Dashboard",
+      "Staff",
+      "Leave",
+      "Branches",
+      "Roles",
+      "Departments",
+      "Retirement",
+    ];
+
+    icons = [
+      AppImages.dashboard,
+      AppImages.staff,
+      AppImages.leave,
+      AppImages.branch,
+      AppImages.roles,
+      AppImages.department,
+      AppImages.retire,
+    ];
+  }
+
+  populateStaffSideMenu() {
+    labels = ["Dashboard", "Leave", "Departments"];
+
+    icons = [AppImages.dashboard, AppImages.leave, AppImages.department];
+  }
+
+  init() {
+    if (appService.currentUser!.role!.name!.contains("admin")) {
+      populateAdminSideMenus();
+    } else {
+      populateStaffSideMenu();
+    }
     rebuildUi();
   }
 

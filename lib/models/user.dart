@@ -72,7 +72,7 @@ class User {
       createdAt: userData['created_at'],
       updatedAt: userData['updated_at'],
       accessToken: json['access_token'],
-      percentageCompleteness: json['percentage_completeness'],
+      percentageCompleteness: userData['percentage_completeness'],
       accountIsVerified: json['account_is_setup'],
       tokenType: json['token_type'],
       bioData: userData['bio_data'] != null
