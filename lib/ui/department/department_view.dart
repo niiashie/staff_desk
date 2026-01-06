@@ -309,38 +309,60 @@ class DepartmentView extends StackedView<DepartmentViewModel> {
                                           break;
                                       }
                                     },
-                                    itemBuilder: (BuildContext context) => [
-                                      PopupMenuItem<String>(
-                                        value: 'edit',
-                                        child: Row(
-                                          children: [
-                                            Icon(Icons.edit, size: 18),
-                                            SizedBox(width: 10),
-                                            Text('Edit'),
+                                    itemBuilder: (BuildContext context) =>
+                                        viewModel
+                                            .appService
+                                            .currentUser!
+                                            .role!
+                                            .name!
+                                            .contains("admin")
+                                        ? [
+                                            PopupMenuItem<String>(
+                                              value: 'edit',
+                                              child: Row(
+                                                children: [
+                                                  Icon(Icons.edit, size: 18),
+                                                  SizedBox(width: 10),
+                                                  Text('Edit'),
+                                                ],
+                                              ),
+                                            ),
+                                            PopupMenuItem<String>(
+                                              value: 'view_members',
+                                              child: Row(
+                                                children: [
+                                                  Icon(Icons.person, size: 18),
+                                                  SizedBox(width: 10),
+                                                  Text('View Members'),
+                                                ],
+                                              ),
+                                            ),
+                                            PopupMenuItem<String>(
+                                              value: 'assign_manager',
+                                              child: Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons.person_add,
+                                                    size: 18,
+                                                  ),
+                                                  SizedBox(width: 10),
+                                                  Text('Assign Manager'),
+                                                ],
+                                              ),
+                                            ),
+                                          ]
+                                        : [
+                                            PopupMenuItem<String>(
+                                              value: 'view_members',
+                                              child: Row(
+                                                children: [
+                                                  Icon(Icons.person, size: 18),
+                                                  SizedBox(width: 10),
+                                                  Text('View Members'),
+                                                ],
+                                              ),
+                                            ),
                                           ],
-                                        ),
-                                      ),
-                                      PopupMenuItem<String>(
-                                        value: 'view_members',
-                                        child: Row(
-                                          children: [
-                                            Icon(Icons.person, size: 18),
-                                            SizedBox(width: 10),
-                                            Text('View Members'),
-                                          ],
-                                        ),
-                                      ),
-                                      PopupMenuItem<String>(
-                                        value: 'assign_manager',
-                                        child: Row(
-                                          children: [
-                                            Icon(Icons.person_add, size: 18),
-                                            SizedBox(width: 10),
-                                            Text('Assign Manager'),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
                                   ),
                                 ),
                               ),

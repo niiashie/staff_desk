@@ -16,6 +16,8 @@ class AppService {
       StreamController<bool>.broadcast();
   StreamController<bool> departmentReloadController =
       StreamController<bool>.broadcast();
+  StreamController<bool> leaveReloadController =
+      StreamController<bool>.broadcast();
   StreamController<Branch?> selectedBranchController =
       StreamController<Branch?>.broadcast();
   final DialogService dialogService = locator<DialogService>();

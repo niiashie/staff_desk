@@ -109,7 +109,7 @@ class BaseScreenViewModel extends BaseViewModel {
     try {
       ApiResponse response = await userApi.getUsers(page: page);
       if (response.ok) {
-        debugPrint("response : ${response.data}");
+        debugPrint("body : ${response.body}");
         List<User> users = (response.data as List)
             .map((e) => User.fromJson(e))
             .toList();

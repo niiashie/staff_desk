@@ -216,4 +216,48 @@ class UserApi extends BaseApi {
     var response = await put(url: Api.leave, data: payload);
     return ApiResponse.parse(response);
   }
+
+  Future<ApiResponse> requestLeave(Map<String, dynamic> payload) async {
+    var response = await post(url: Api.leaveRequest, data: payload);
+    return ApiResponse.parse(response);
+  }
+
+  Future<ApiResponse> getLeaveRequests({int? page = 1}) async {
+    Map<String, dynamic> params = {"page": page};
+    var response = await get(url: Api.leaveRequest, queryParameters: params);
+    return ApiResponse.parse(response);
+  }
+
+  Future<ApiResponse> getUserLeaveRequests(
+    String userId, {
+    int? page = 1,
+  }) async {
+    Map<String, dynamic> params = {"page": page};
+    var response = await get(
+      url: "${Api.leaveRequest}/user/$userId",
+      queryParameters: params,
+    );
+    return ApiResponse.parse(response);
+  }
+
+  Future<ApiResponse> updateLeaveRequest(
+    int leaveId,
+    Map<String, dynamic> body,
+  ) async {
+    var response = await put(url: "${Api.leaveRequest}/$leaveId", data: body);
+    return ApiResponse.parse(response);
+  }
+
+  Future<ApiResponse> rejectLeave(int leaveId) async {
+    var response = await put(
+      url: "${Api.leaveRequest}/$leaveId/reject",
+      data: {},
+    );
+    return ApiResponse.parse(response);
+  }
+
+  Future<ApiResponse> cancelLeave(int leaveId) async {
+    var response = await delete(url: "${Api.leaveRequest}/$leaveId");
+    return ApiResponse.parse(response);
+  }
 }

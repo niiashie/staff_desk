@@ -26,6 +26,80 @@ class ChildFormData {
   });
 }
 
+class AcademicQualificationFormData {
+  final TextEditingController qualificationController;
+  final TextEditingController institutionController;
+  final TextEditingController yearController;
+  final int? id;
+
+  AcademicQualificationFormData({
+    required this.qualificationController,
+    required this.institutionController,
+    required this.yearController,
+    this.id,
+  });
+}
+
+class TrainingFormData {
+  final TextEditingController courseController;
+  final TextEditingController institutionController;
+  final TextEditingController yearController;
+  final TextEditingController locationController;
+  final int? id;
+
+  TrainingFormData({
+    required this.courseController,
+    required this.institutionController,
+    required this.yearController,
+    required this.locationController,
+    this.id,
+  });
+}
+
+class EmergencyContactFormData {
+  final TextEditingController nameController;
+  final TextEditingController addressController;
+  final TextEditingController telephoneController;
+  final int? id;
+
+  EmergencyContactFormData({
+    required this.nameController,
+    required this.addressController,
+    required this.telephoneController,
+    this.id,
+  });
+}
+
+class BeneficiaryFormData {
+  final TextEditingController nameController;
+  final TextEditingController addressTelephoneController;
+  final TextEditingController relationshipController;
+  final TextEditingController percentageController;
+  final int? id;
+
+  BeneficiaryFormData({
+    required this.nameController,
+    required this.addressTelephoneController,
+    required this.relationshipController,
+    required this.percentageController,
+    this.id,
+  });
+}
+
+class RefereeFormData {
+  final TextEditingController nameController;
+  final TextEditingController occupationController;
+  final TextEditingController addressController;
+  final int? id;
+
+  RefereeFormData({
+    required this.nameController,
+    required this.occupationController,
+    required this.addressController,
+    this.id,
+  });
+}
+
 class EditStaffInfoView extends StatefulWidget {
   final User? user;
   final EditCategory? category;
@@ -250,6 +324,86 @@ class _EditStaffInfoViewState extends State<EditStaffInfoView> {
           );
         }).toList();
       }
+    } else if (widget.category == EditCategory.educationTraining &&
+        widget.user!.educationTraining != null) {
+      final education = widget.user!.educationTraining!;
+      _hobbiesController.text = education.hobbiesSpecialInterest ?? '';
+
+      // Initialize academic qualifications
+      if (education.academicQualifications != null) {
+        _academicQualifications = education.academicQualifications!.map((qual) {
+          return AcademicQualificationFormData(
+            qualificationController: TextEditingController(
+              text: qual.qualification ?? '',
+            ),
+            institutionController: TextEditingController(
+              text: qual.institution ?? '',
+            ),
+            yearController: TextEditingController(text: qual.year ?? ''),
+            id: qual.id,
+          );
+        }).toList();
+      }
+
+      // Initialize trainings
+      if (education.trainings != null) {
+        _trainings = education.trainings!.map((training) {
+          return TrainingFormData(
+            courseController: TextEditingController(
+              text: training.course ?? '',
+            ),
+            institutionController: TextEditingController(
+              text: training.institution ?? '',
+            ),
+            yearController: TextEditingController(text: training.year ?? ''),
+            locationController: TextEditingController(
+              text: training.location ?? '',
+            ),
+            id: training.id,
+          );
+        }).toList();
+      }
+    } else if (widget.category == EditCategory.emergencyContacts &&
+        widget.user!.emergencies != null) {
+      _emergencyContacts = widget.user!.emergencies!.map((contact) {
+        return EmergencyContactFormData(
+          nameController: TextEditingController(text: contact.name ?? ''),
+          addressController: TextEditingController(text: contact.address ?? ''),
+          telephoneController: TextEditingController(
+            text: contact.telephoneNumber ?? '',
+          ),
+          id: contact.id,
+        );
+      }).toList();
+    } else if (widget.category == EditCategory.beneficiaries &&
+        widget.user!.beneficiaries != null) {
+      _beneficiaries = widget.user!.beneficiaries!.map((beneficiary) {
+        return BeneficiaryFormData(
+          nameController: TextEditingController(text: beneficiary.name ?? ''),
+          addressTelephoneController: TextEditingController(
+            text: beneficiary.addressTelephoneNumber ?? '',
+          ),
+          relationshipController: TextEditingController(
+            text: beneficiary.relationship ?? '',
+          ),
+          percentageController: TextEditingController(
+            text: beneficiary.percentageOfBenefit ?? '',
+          ),
+          id: beneficiary.id,
+        );
+      }).toList();
+    } else if (widget.category == EditCategory.referees &&
+        widget.user!.referees != null) {
+      _referees = widget.user!.referees!.map((referee) {
+        return RefereeFormData(
+          nameController: TextEditingController(text: referee.name ?? ''),
+          occupationController: TextEditingController(
+            text: referee.occupation ?? '',
+          ),
+          addressController: TextEditingController(text: referee.address ?? ''),
+          id: referee.id,
+        );
+      }).toList();
     }
   }
 
@@ -416,6 +570,16 @@ class _EditStaffInfoViewState extends State<EditStaffInfoView> {
   // Children list
   List<ChildFormData> _children = [];
 
+  // Education & Training lists
+  List<AcademicQualificationFormData> _academicQualifications = [];
+  List<TrainingFormData> _trainings = [];
+  final TextEditingController _hobbiesController = TextEditingController();
+
+  // Emergency contacts, beneficiaries, referees lists
+  List<EmergencyContactFormData> _emergencyContacts = [];
+  List<BeneficiaryFormData> _beneficiaries = [];
+  List<RefereeFormData> _referees = [];
+
   Widget _buildFamilyDataForm() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -541,17 +705,217 @@ class _EditStaffInfoViewState extends State<EditStaffInfoView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader('Education & Training', Icons.school),
-        Text(
-          'Please use the User Info section to add/edit academic qualifications and training.',
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[700],
-            fontStyle: FontStyle.italic,
+        _buildSectionHeader('Academic Qualifications', Icons.school),
+        ..._academicQualifications.asMap().entries.map((entry) {
+          final index = entry.key;
+          final qualification = entry.value;
+          return _buildAcademicQualificationCard(qualification, index);
+        }),
+        SizedBox(height: 12),
+        OutlinedButton.icon(
+          onPressed: _addAcademicQualification,
+          icon: Icon(Icons.add, color: AppColors.primaryColor),
+          label: Text(
+            'Add Academic Qualification',
+            style: TextStyle(color: AppColors.primaryColor),
           ),
+          style: OutlinedButton.styleFrom(
+            side: BorderSide(color: AppColors.primaryColor),
+            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          ),
+        ),
+        SizedBox(height: 30),
+        _buildSectionHeader('Professional Training', Icons.workspace_premium),
+        ..._trainings.asMap().entries.map((entry) {
+          final index = entry.key;
+          final training = entry.value;
+          return _buildTrainingCard(training, index);
+        }),
+        SizedBox(height: 12),
+        OutlinedButton.icon(
+          onPressed: _addTraining,
+          icon: Icon(Icons.add, color: AppColors.primaryColor),
+          label: Text(
+            'Add Training',
+            style: TextStyle(color: AppColors.primaryColor),
+          ),
+          style: OutlinedButton.styleFrom(
+            side: BorderSide(color: AppColors.primaryColor),
+            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          ),
+        ),
+        SizedBox(height: 30),
+        _buildSectionHeader('Other Information', Icons.interests),
+        _buildFormField(
+          'Hobbies & Special Interests',
+          _hobbiesController,
+          maxLines: 3,
         ),
       ],
     );
+  }
+
+  Widget _buildAcademicQualificationCard(
+    AcademicQualificationFormData qualification,
+    int index,
+  ) {
+    return Card(
+      margin: EdgeInsets.only(bottom: 16),
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.teal.withValues(alpha: 0.3)),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Academic Qualification ${index + 1}',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.teal.shade700,
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.delete, color: Colors.red),
+                  onPressed: () => _removeAcademicQualification(index),
+                  tooltip: 'Remove Qualification',
+                ),
+              ],
+            ),
+            SizedBox(height: 12),
+            _buildTwoColumnRow(
+              _buildFormField(
+                'Qualification',
+                qualification.qualificationController,
+                validator: _validateRequired,
+              ),
+              _buildFormField(
+                'Institution',
+                qualification.institutionController,
+                validator: _validateRequired,
+              ),
+            ),
+            _buildTwoColumnRow(
+              _buildFormField(
+                'Year',
+                qualification.yearController,
+                validator: _validateRequired,
+              ),
+              SizedBox(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTrainingCard(TrainingFormData training, int index) {
+    return Card(
+      margin: EdgeInsets.only(bottom: 16),
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.teal.withValues(alpha: 0.3)),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Training ${index + 1}',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.teal.shade700,
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.delete, color: Colors.red),
+                  onPressed: () => _removeTraining(index),
+                  tooltip: 'Remove Training',
+                ),
+              ],
+            ),
+            SizedBox(height: 12),
+            _buildTwoColumnRow(
+              _buildFormField(
+                'Course/Program',
+                training.courseController,
+                validator: _validateRequired,
+              ),
+              _buildFormField(
+                'Institution',
+                training.institutionController,
+                validator: _validateRequired,
+              ),
+            ),
+            _buildTwoColumnRow(
+              _buildFormField(
+                'Year',
+                training.yearController,
+                validator: _validateRequired,
+              ),
+              _buildFormField('Location', training.locationController),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _addAcademicQualification() {
+    setState(() {
+      _academicQualifications.add(
+        AcademicQualificationFormData(
+          qualificationController: TextEditingController(),
+          institutionController: TextEditingController(),
+          yearController: TextEditingController(),
+        ),
+      );
+    });
+  }
+
+  void _removeAcademicQualification(int index) {
+    setState(() {
+      _academicQualifications[index].qualificationController.dispose();
+      _academicQualifications[index].institutionController.dispose();
+      _academicQualifications[index].yearController.dispose();
+      _academicQualifications.removeAt(index);
+    });
+  }
+
+  void _addTraining() {
+    setState(() {
+      _trainings.add(
+        TrainingFormData(
+          courseController: TextEditingController(),
+          institutionController: TextEditingController(),
+          yearController: TextEditingController(),
+          locationController: TextEditingController(),
+        ),
+      );
+    });
+  }
+
+  void _removeTraining(int index) {
+    setState(() {
+      _trainings[index].courseController.dispose();
+      _trainings[index].institutionController.dispose();
+      _trainings[index].yearController.dispose();
+      _trainings[index].locationController.dispose();
+      _trainings.removeAt(index);
+    });
   }
 
   Widget _buildEmergencyContactsForm() {
@@ -559,12 +923,22 @@ class _EditStaffInfoViewState extends State<EditStaffInfoView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionHeader('Emergency Contacts', Icons.emergency),
-        Text(
-          'Please use the User Info section to add/edit emergency contacts.',
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[700],
-            fontStyle: FontStyle.italic,
+        ..._emergencyContacts.asMap().entries.map((entry) {
+          final index = entry.key;
+          final contact = entry.value;
+          return _buildEmergencyContactCard(contact, index);
+        }),
+        SizedBox(height: 12),
+        OutlinedButton.icon(
+          onPressed: _addEmergencyContact,
+          icon: Icon(Icons.add, color: AppColors.primaryColor),
+          label: Text(
+            'Add Emergency Contact',
+            style: TextStyle(color: AppColors.primaryColor),
+          ),
+          style: OutlinedButton.styleFrom(
+            side: BorderSide(color: AppColors.primaryColor),
+            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           ),
         ),
       ],
@@ -576,12 +950,22 @@ class _EditStaffInfoViewState extends State<EditStaffInfoView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionHeader('Beneficiaries', Icons.people_outline),
-        Text(
-          'Please use the User Info section to add/edit beneficiaries.',
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[700],
-            fontStyle: FontStyle.italic,
+        ..._beneficiaries.asMap().entries.map((entry) {
+          final index = entry.key;
+          final beneficiary = entry.value;
+          return _buildBeneficiaryCard(beneficiary, index);
+        }),
+        SizedBox(height: 12),
+        OutlinedButton.icon(
+          onPressed: _addBeneficiary,
+          icon: Icon(Icons.add, color: AppColors.primaryColor),
+          label: Text(
+            'Add Beneficiary',
+            style: TextStyle(color: AppColors.primaryColor),
+          ),
+          style: OutlinedButton.styleFrom(
+            side: BorderSide(color: AppColors.primaryColor),
+            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           ),
         ),
       ],
@@ -593,16 +977,266 @@ class _EditStaffInfoViewState extends State<EditStaffInfoView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionHeader('Referees', Icons.supervisor_account),
-        Text(
-          'Please use the User Info section to add/edit referees.',
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[700],
-            fontStyle: FontStyle.italic,
+        ..._referees.asMap().entries.map((entry) {
+          final index = entry.key;
+          final referee = entry.value;
+          return _buildRefereeCard(referee, index);
+        }),
+        SizedBox(height: 12),
+        OutlinedButton.icon(
+          onPressed: _addReferee,
+          icon: Icon(Icons.add, color: AppColors.primaryColor),
+          label: Text(
+            'Add Referee',
+            style: TextStyle(color: AppColors.primaryColor),
+          ),
+          style: OutlinedButton.styleFrom(
+            side: BorderSide(color: AppColors.primaryColor),
+            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           ),
         ),
       ],
     );
+  }
+
+  Widget _buildEmergencyContactCard(
+    EmergencyContactFormData contact,
+    int index,
+  ) {
+    return Card(
+      margin: EdgeInsets.only(bottom: 16),
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.red.withValues(alpha: 0.3)),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Emergency Contact ${index + 1}',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.red.shade700,
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.delete, color: Colors.red),
+                  onPressed: () => _removeEmergencyContact(index),
+                  tooltip: 'Remove Contact',
+                ),
+              ],
+            ),
+            SizedBox(height: 12),
+            _buildTwoColumnRow(
+              _buildFormField(
+                'Name',
+                contact.nameController,
+                validator: _validateRequired,
+              ),
+              _buildFormField(
+                'Telephone',
+                contact.telephoneController,
+                validator: _validateRequired,
+              ),
+            ),
+            _buildFormField(
+              'Address',
+              contact.addressController,
+              validator: _validateRequired,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBeneficiaryCard(BeneficiaryFormData beneficiary, int index) {
+    return Card(
+      margin: EdgeInsets.only(bottom: 16),
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.green.withValues(alpha: 0.3)),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Beneficiary ${index + 1}',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.green.shade700,
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.delete, color: Colors.red),
+                  onPressed: () => _removeBeneficiary(index),
+                  tooltip: 'Remove Beneficiary',
+                ),
+              ],
+            ),
+            SizedBox(height: 12),
+            _buildTwoColumnRow(
+              _buildFormField(
+                'Name',
+                beneficiary.nameController,
+                validator: _validateRequired,
+              ),
+              _buildFormField(
+                'Relationship',
+                beneficiary.relationshipController,
+                validator: _validateRequired,
+              ),
+            ),
+            _buildTwoColumnRow(
+              _buildFormField(
+                'Address/Telephone',
+                beneficiary.addressTelephoneController,
+                validator: _validateRequired,
+              ),
+              _buildFormField(
+                'Percentage of Benefit (%)',
+                beneficiary.percentageController,
+                validator: _validateRequired,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRefereeCard(RefereeFormData referee, int index) {
+    return Card(
+      margin: EdgeInsets.only(bottom: 16),
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.indigo.withValues(alpha: 0.3)),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Referee ${index + 1}',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.indigo.shade700,
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.delete, color: Colors.red),
+                  onPressed: () => _removeReferee(index),
+                  tooltip: 'Remove Referee',
+                ),
+              ],
+            ),
+            SizedBox(height: 12),
+            _buildTwoColumnRow(
+              _buildFormField(
+                'Name',
+                referee.nameController,
+                validator: _validateRequired,
+              ),
+              _buildFormField(
+                'Occupation',
+                referee.occupationController,
+                validator: _validateRequired,
+              ),
+            ),
+            _buildFormField(
+              'Address',
+              referee.addressController,
+              validator: _validateRequired,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _addEmergencyContact() {
+    setState(() {
+      _emergencyContacts.add(
+        EmergencyContactFormData(
+          nameController: TextEditingController(),
+          addressController: TextEditingController(),
+          telephoneController: TextEditingController(),
+        ),
+      );
+    });
+  }
+
+  void _removeEmergencyContact(int index) {
+    setState(() {
+      _emergencyContacts[index].nameController.dispose();
+      _emergencyContacts[index].addressController.dispose();
+      _emergencyContacts[index].telephoneController.dispose();
+      _emergencyContacts.removeAt(index);
+    });
+  }
+
+  void _addBeneficiary() {
+    setState(() {
+      _beneficiaries.add(
+        BeneficiaryFormData(
+          nameController: TextEditingController(),
+          addressTelephoneController: TextEditingController(),
+          relationshipController: TextEditingController(),
+          percentageController: TextEditingController(),
+        ),
+      );
+    });
+  }
+
+  void _removeBeneficiary(int index) {
+    setState(() {
+      _beneficiaries[index].nameController.dispose();
+      _beneficiaries[index].addressTelephoneController.dispose();
+      _beneficiaries[index].relationshipController.dispose();
+      _beneficiaries[index].percentageController.dispose();
+      _beneficiaries.removeAt(index);
+    });
+  }
+
+  void _addReferee() {
+    setState(() {
+      _referees.add(
+        RefereeFormData(
+          nameController: TextEditingController(),
+          occupationController: TextEditingController(),
+          addressController: TextEditingController(),
+        ),
+      );
+    });
+  }
+
+  void _removeReferee(int index) {
+    setState(() {
+      _referees[index].nameController.dispose();
+      _referees[index].occupationController.dispose();
+      _referees[index].addressController.dispose();
+      _referees.removeAt(index);
+    });
   }
 
   Widget _buildSectionHeader(String title, IconData icon) {
@@ -782,6 +1416,64 @@ class _EditStaffInfoViewState extends State<EditStaffInfoView> {
             };
           }).toList(),
         };
+      case EditCategory.educationTraining:
+        return {
+          'hobbies_special_interes': _hobbiesController.text,
+          'academic_qualifications': _academicQualifications.map((
+            qualification,
+          ) {
+            return {
+              'id': qualification.id,
+              'qualification': qualification.qualificationController.text,
+              'institution': qualification.institutionController.text,
+              'year': qualification.yearController.text,
+            };
+          }).toList(),
+          'trainings': _trainings.map((training) {
+            return {
+              'id': training.id,
+              'course': training.courseController.text,
+              'instituition': training.institutionController.text,
+              'year': training.yearController.text,
+              'location': training.locationController.text,
+            };
+          }).toList(),
+        };
+      case EditCategory.emergencyContacts:
+        return {
+          'emergencies': _emergencyContacts.map((contact) {
+            return {
+              'id': contact.id,
+              'name': contact.nameController.text,
+              'address': contact.addressController.text,
+              'telephone_number': contact.telephoneController.text,
+            };
+          }).toList(),
+        };
+      case EditCategory.beneficiaries:
+        return {
+          'beneficiaries': _beneficiaries.map((beneficiary) {
+            return {
+              'id': beneficiary.id,
+              'name': beneficiary.nameController.text,
+              'address_telephone_number':
+                  beneficiary.addressTelephoneController.text,
+              'relationship': beneficiary.relationshipController.text,
+              'percentage_of_benefit': beneficiary.percentageController.text,
+            };
+          }).toList(),
+        };
+      case EditCategory.referees:
+        return {
+          'referees': _referees.map((referee) {
+            return {
+              'id': referee.id,
+              'name': referee.nameController.text,
+              'occupation': referee.occupationController.text,
+              'address': referee.addressController.text,
+            };
+          }).toList(),
+        };
       default:
         return {};
     }
@@ -825,6 +1517,45 @@ class _EditStaffInfoViewState extends State<EditStaffInfoView> {
     for (var child in _children) {
       child.nameController.dispose();
       child.dobController.dispose();
+    }
+
+    // Dispose academic qualifications controllers
+    for (var qualification in _academicQualifications) {
+      qualification.qualificationController.dispose();
+      qualification.institutionController.dispose();
+      qualification.yearController.dispose();
+    }
+
+    // Dispose trainings controllers
+    for (var training in _trainings) {
+      training.courseController.dispose();
+      training.institutionController.dispose();
+      training.yearController.dispose();
+      training.locationController.dispose();
+    }
+
+    _hobbiesController.dispose();
+
+    // Dispose emergency contacts controllers
+    for (var contact in _emergencyContacts) {
+      contact.nameController.dispose();
+      contact.addressController.dispose();
+      contact.telephoneController.dispose();
+    }
+
+    // Dispose beneficiaries controllers
+    for (var beneficiary in _beneficiaries) {
+      beneficiary.nameController.dispose();
+      beneficiary.addressTelephoneController.dispose();
+      beneficiary.relationshipController.dispose();
+      beneficiary.percentageController.dispose();
+    }
+
+    // Dispose referees controllers
+    for (var referee in _referees) {
+      referee.nameController.dispose();
+      referee.occupationController.dispose();
+      referee.addressController.dispose();
     }
 
     super.dispose();
