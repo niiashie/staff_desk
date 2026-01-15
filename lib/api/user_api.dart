@@ -167,6 +167,16 @@ class UserApi extends BaseApi {
     return ApiResponse.parse(response);
   }
 
+  Future<ApiResponse> getUsersByAge({int? page = 1, String? branchId}) async {
+    Map<String, dynamic> params = {"'branch_id": branchId};
+
+    var response = await get(
+      url: "${Api.users}/categorize-by-age",
+      queryParameters: params,
+    );
+    return ApiResponse.parse(response);
+  }
+
   Future<ApiResponse> assignUserToBranch(Map<String, dynamic> payload) async {
     var response = await post(url: Api.assignUser, data: payload);
     return ApiResponse.parse(response);
@@ -258,6 +268,14 @@ class UserApi extends BaseApi {
 
   Future<ApiResponse> cancelLeave(int leaveId) async {
     var response = await delete(url: "${Api.leaveRequest}/$leaveId");
+    return ApiResponse.parse(response);
+  }
+
+  Future<ApiResponse> updateUserStatus(String userId, String status) async {
+    var response = await put(
+      url: "${Api.users}/$userId/status",
+      data: {"status": status},
+    );
     return ApiResponse.parse(response);
   }
 }

@@ -127,13 +127,8 @@ class LeaveViewModel extends BaseScreenViewModel {
     notifyListeners();
   }
 
-  Future<void> submitLeaveRequest() async {
+  Future<void> submitLeaveRequest({bool isPenalty = false, User? user}) async {
     if (!leaveRequestFormKey.currentState!.validate()) {
-      return;
-    }
-
-    if (selectedHandOverUser == null) {
-      appService.showMessage(message: 'Please select a hand-over person');
       return;
     }
 
@@ -146,13 +141,17 @@ class LeaveViewModel extends BaseScreenViewModel {
 
     try {
       final requestData = {
-        'user_id': appService.currentUser!.id,
-        'hand_over_id': selectedHandOverUser!.id,
+        'user_id': isPenalty ? user!.id : appService.currentUser!.id,
+        //'hand_over_id': selectedHandOverUser!.id,
         'description': selectedLeaveType,
         'number_of_days': int.parse(numberOfDaysController.text),
         'start_date': startDateController.text,
         'end_date': endDateController.text,
       };
+
+      if (selectedHandOverUser != null) {
+        requestData['hand_over_id'] = selectedHandOverUser!.id;
+      }
 
       debugPrint('Leave request data: $requestData');
       ApiResponse response = await userApi.requestLeave(requestData);

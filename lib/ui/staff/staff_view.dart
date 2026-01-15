@@ -10,6 +10,7 @@ import 'package:leave_desk/shared/pagination.dart';
 import 'package:leave_desk/shared/table_text.dart';
 import 'package:leave_desk/shared/table_title.dart';
 import 'package:leave_desk/ui/department/widget/add_department_view.dart';
+import 'package:leave_desk/ui/leave/leave_request_view.dart';
 import 'package:leave_desk/ui/staff/staff_view_model.dart';
 import 'package:leave_desk/ui/staff/widget/assign_staff_department_view.dart';
 import 'package:leave_desk/ui/staff/widget/assign_staff_view.dart';
@@ -216,6 +217,83 @@ class StaffView extends StackedView<StaffViewModel> {
                     itemBuilder: (context, index) {
                       return ListContainer(
                         index: index,
+                        showHiddenWidget:
+                            viewModel.users[index]['showHiddenWidget'],
+                        hiddenWidget: Container(
+                          width: double.infinity,
+                          height: 45,
+                          color: index % 2 == 0
+                              ? Colors.transparent
+                              : Colors.white,
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "Staff Status : ",
+                                  style: TextStyle(fontSize: 14),
+                                ),
+                                const SizedBox(width: 15),
+                                Container(
+                                  height: 35,
+                                  padding: EdgeInsets.symmetric(horizontal: 12),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: Colors.grey[400]!,
+                                    ),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: DropdownButton<String>(
+                                    value: viewModel.selectedStatus,
+                                    underline: SizedBox(),
+                                    hint: Text(
+                                      "Select Status",
+                                      style: TextStyle(color: Colors.grey[700]),
+                                    ),
+                                    items: ['pending', 'active', 'suspended']
+                                        .map(
+                                          (status) => DropdownMenuItem(
+                                            value: status,
+                                            child: Text(
+                                              Utils().capitalizeFirstLetter(
+                                                status,
+                                              ),
+                                            ),
+                                          ),
+                                        )
+                                        .toList(),
+                                    onChanged: (value) {
+                                      viewModel.setUserStatus(index, value);
+                                      // Handle dropdown change
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                CustomButton(
+                                  width: 100,
+                                  color: Colors.blueAccent,
+                                  height: 35,
+                                  borderRadius: 10,
+                                  elevation: 1,
+                                  isLoading: viewModel.busy(
+                                    "${index}statusBtn",
+                                  ),
+                                  title: Text(
+                                    "Change",
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  ontap: () {
+                                    viewModel.triggerUpdateUserStatus(index);
+                                  },
+                                ),
+
+                                const SizedBox(width: 15),
+                              ],
+                            ),
+                          ),
+                        ),
                         child: Row(
                           mainAxisSize: MainAxisSize.max,
                           crossAxisAlignment: CrossAxisAlignment.center,
@@ -225,7 +303,7 @@ class StaffView extends StackedView<StaffViewModel> {
                               child: TableText(
                                 leftPadding: 10,
                                 name: Utils().toTitleCase(
-                                  viewModel.users[index].name!,
+                                  viewModel.users[index]['user'].name!,
                                 ),
                               ),
                             ),
@@ -233,7 +311,8 @@ class StaffView extends StackedView<StaffViewModel> {
                               flex: 2,
                               child: TableText(
                                 name: Utils().capitalizeFirstLetter(
-                                  viewModel.users[index].role!.name.toString(),
+                                  viewModel.users[index]['user'].role!.name
+                                      .toString(),
                                 ),
                               ),
                             ),
@@ -241,9 +320,12 @@ class StaffView extends StackedView<StaffViewModel> {
                               flex: 2,
                               child: TableText(
                                 name:
-                                    viewModel.users[index].branches!.isNotEmpty
+                                    viewModel
+                                        .users[index]['user']
+                                        .branches!
+                                        .isNotEmpty
                                     ? viewModel
-                                              .users[index]
+                                              .users[index]['user']
                                               .branches![0]
                                               .branchName ??
                                           "N/A"
@@ -255,7 +337,7 @@ class StaffView extends StackedView<StaffViewModel> {
                               child: TableText(
                                 leftPadding: 10,
                                 name: Utils().toTitleCase(
-                                  viewModel.users[index].status!,
+                                  viewModel.users[index]['user'].status!,
                                 ),
                               ),
                             ),
@@ -264,15 +346,19 @@ class StaffView extends StackedView<StaffViewModel> {
                               child: TableText(
                                 leftPadding: 10,
                                 name:
-                                    "${viewModel.users[index].percentageCompleteness} %",
+                                    "${viewModel.users[index]['user'].percentageCompleteness} %",
                               ),
                             ),
                             Flexible(
                               flex: 1,
                               child: TableText(
                                 leftPadding: 10,
-                                name: viewModel.users[index].leave != null
-                                    ? viewModel.users[index].leave!.daysLeft
+                                name:
+                                    viewModel.users[index]['user'].leave != null
+                                    ? viewModel
+                                          .users[index]['user']
+                                          .leave!
+                                          .daysLeft
                                           .toString()
                                     : "N/A",
                               ),
@@ -324,11 +410,15 @@ class StaffView extends StackedView<StaffViewModel> {
                                             MaterialPageRoute(
                                               builder: (BuildContext context) {
                                                 return ViewStaffView(
-                                                  user: viewModel.users[index],
+                                                  user: viewModel
+                                                      .users[index]['user'],
                                                 );
                                               },
                                             ),
                                           );
+                                          break;
+                                        case 'change_status':
+                                          viewModel.showHiddenWidget(index);
                                           break;
                                         case 'assign_branch':
                                           viewModel.appService.controller.add(
@@ -347,7 +437,8 @@ class StaffView extends StackedView<StaffViewModel> {
                                             MaterialPageRoute(
                                               builder: (BuildContext context) {
                                                 return AssignStaffView(
-                                                  user: viewModel.users[index],
+                                                  user: viewModel
+                                                      .users[index]['user'],
                                                   reloadController: viewModel
                                                       .reloadController,
                                                 );
@@ -373,7 +464,8 @@ class StaffView extends StackedView<StaffViewModel> {
                                             MaterialPageRoute(
                                               builder: (BuildContext context) {
                                                 return StaffLeaveInfoView(
-                                                  user: viewModel.users[index],
+                                                  user: viewModel
+                                                      .users[index]['user'],
                                                   reloadController: viewModel
                                                       .reloadController,
                                                 );
@@ -381,6 +473,43 @@ class StaffView extends StackedView<StaffViewModel> {
                                             ),
                                           );
                                           break;
+                                        case 'penalize':
+                                          if (viewModel
+                                                  .users[index]['user']
+                                                  .leave !=
+                                              null) {
+                                            viewModel.appService.controller.add(
+                                              NavigationItem(
+                                                "Apply Leave",
+                                                "/applyLeave",
+                                                "sub",
+                                              ),
+                                            );
+                                            Navigator.of(
+                                              Utils
+                                                  .sideMenuNavigationKey
+                                                  .currentContext!,
+                                            ).push(
+                                              MaterialPageRoute(
+                                                builder: (BuildContext context) {
+                                                  return LeaveRequestView(
+                                                    isPenalty: true,
+                                                    selectedUser: viewModel
+                                                        .users[index]['user'],
+                                                  );
+                                                },
+                                              ),
+                                            );
+                                          } else {
+                                            viewModel.appService.showMessage(
+                                              title: "Specify Leave",
+                                              message:
+                                                  "Specify staff leave duration to proceed",
+                                            );
+                                          }
+
+                                          break;
+
                                         case 'assign_department':
                                           viewModel.appService.controller.add(
                                             NavigationItem(
@@ -398,7 +527,8 @@ class StaffView extends StackedView<StaffViewModel> {
                                             MaterialPageRoute(
                                               builder: (BuildContext context) {
                                                 return AssignStaffDepartmentView(
-                                                  user: viewModel.users[index],
+                                                  user: viewModel
+                                                      .users[index]['user'],
                                                   reloadController: viewModel
                                                       .reloadController,
                                                 );
@@ -429,19 +559,29 @@ class StaffView extends StackedView<StaffViewModel> {
                                           ],
                                         ),
                                       ),
-                                      // PopupMenuItem<String>(
-                                      //   value: 'change_role',
-                                      //   child: Row(
-                                      //     children: [
-                                      //       Icon(
-                                      //         Icons.admin_panel_settings,
-                                      //         size: 18,
-                                      //       ),
-                                      //       SizedBox(width: 10),
-                                      //       Text('Change Role'),
-                                      //     ],
-                                      //   ),
-                                      // ),
+                                      PopupMenuItem<String>(
+                                        value: 'penalize',
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.gavel, size: 18),
+                                            SizedBox(width: 10),
+                                            Text('Penalize'),
+                                          ],
+                                        ),
+                                      ),
+                                      PopupMenuItem<String>(
+                                        value: 'change_status',
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.admin_panel_settings,
+                                              size: 18,
+                                            ),
+                                            SizedBox(width: 10),
+                                            Text('Change Status'),
+                                          ],
+                                        ),
+                                      ),
                                       PopupMenuItem<String>(
                                         value: 'leave_history',
                                         child: Row(

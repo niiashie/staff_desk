@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:leave_desk/constants/colors.dart';
+import 'package:leave_desk/models/user.dart';
 import 'package:leave_desk/shared/custom_button.dart';
 import 'package:leave_desk/shared/custom_form_field.dart';
 import 'package:leave_desk/shared/loading.dart';
@@ -9,7 +10,10 @@ import 'package:leave_desk/ui/leave/leave_view_model.dart';
 import 'package:stacked/stacked.dart';
 
 class LeaveRequestView extends StackedView<LeaveViewModel> {
-  const LeaveRequestView({Key? key}) : super(key: key);
+  final bool? isPenalty;
+  final User? selectedUser;
+  const LeaveRequestView({Key? key, this.isPenalty = false, this.selectedUser})
+    : super(key: key);
 
   @override
   bool get reactive => true;
@@ -20,6 +24,9 @@ class LeaveRequestView extends StackedView<LeaveViewModel> {
   @override
   void onViewModelReady(LeaveViewModel viewModel) {
     viewModel.init();
+    if (isPenalty == true) {
+      viewModel.setLeaveType('penalty');
+    }
     super.onViewModelReady(viewModel);
   }
 
@@ -37,7 +44,7 @@ class LeaveRequestView extends StackedView<LeaveViewModel> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 15),
-                  PageTitle(name: "Leave Request"),
+                  PageTitle(name: isPenalty! ? "Penalty" : "Leave Request"),
                   const SizedBox(height: 15),
                   Container(
                     width: 450,
@@ -57,24 +64,29 @@ class LeaveRequestView extends StackedView<LeaveViewModel> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                "Provide the details required for leave application. You have ${viewModel.appService.currentUser!.leave!.daysLeft} days of work leave left",
+                                "Provide the details required for leave application. You have ${isPenalty! ? selectedUser!.leave!.daysLeft : viewModel.appService.currentUser!.leave!.daysLeft} days of work leave left",
                               ),
 
                               const SizedBox(height: 25),
 
                               // Hand Over Person Dropdown
-                              CustomFormField(
-                                label: "Hand Over Person",
-                                hintText: viewModel.selectedHandOverUser != null
-                                    ? "${viewModel.selectedHandOverUser!.name} (${viewModel.selectedHandOverUser!.pin})"
-                                    : "Select hand over person",
-                                filled: true,
-                                isImportant: true,
-                                controller: viewModel.handOverController,
-                                readOnly: true,
-                                onTap: () =>
-                                    _showHandOverDialog(context, viewModel),
+                              Visibility(
+                                visible: !isPenalty!,
+                                child: CustomFormField(
+                                  label: "Hand Over Person",
+                                  hintText:
+                                      viewModel.selectedHandOverUser != null
+                                      ? "${viewModel.selectedHandOverUser!.name} (${viewModel.selectedHandOverUser!.pin})"
+                                      : "Select hand over person",
+                                  filled: true,
+                                  isImportant: true,
+                                  controller: viewModel.handOverController,
+                                  readOnly: true,
+                                  onTap: () =>
+                                      _showHandOverDialog(context, viewModel),
+                                ),
                               ),
+
                               const SizedBox(height: 15),
 
                               // Leave Type Dropdown
@@ -87,8 +99,12 @@ class LeaveRequestView extends StackedView<LeaveViewModel> {
                                 controller: viewModel.descriptionController,
                                 isImportant: true,
                                 readOnly: true,
-                                onTap: () =>
-                                    _showLeaveTypeDialog(context, viewModel),
+                                onTap: isPenalty!
+                                    ? null
+                                    : () => _showLeaveTypeDialog(
+                                        context,
+                                        viewModel,
+                                      ),
                               ),
                               const SizedBox(height: 15),
 
@@ -242,7 +258,10 @@ class LeaveRequestView extends StackedView<LeaveViewModel> {
                                     style: TextStyle(color: Colors.white),
                                   ),
                                   ontap: () {
-                                    viewModel.submitLeaveRequest();
+                                    viewModel.submitLeaveRequest(
+                                      isPenalty: isPenalty!,
+                                      user: selectedUser,
+                                    );
                                   },
                                 ),
                               ),
@@ -301,7 +320,14 @@ class LeaveRequestView extends StackedView<LeaveViewModel> {
   }
 
   void _showLeaveTypeDialog(BuildContext context, LeaveViewModel viewModel) {
-    final leaveTypes = ['annual', 'sick', 'maternity', 'unpaid', 'casual'];
+    final leaveTypes = [
+      'annual',
+      'sick',
+      'maternity',
+      'unpaid',
+      'casual',
+      'penalty',
+    ];
 
     showDialog(
       context: context,

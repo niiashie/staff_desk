@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:leave_desk/constants/colors.dart';
 import 'package:leave_desk/models/department.dart';
+import 'package:leave_desk/models/user.dart';
 import 'package:leave_desk/shared/custom_button.dart';
 import 'package:leave_desk/shared/custom_form_field.dart';
 import 'package:leave_desk/shared/loading.dart';
@@ -83,6 +84,144 @@ class AddDepartmentView extends StackedView<DepartmentViewModel> {
                                   }
                                   return null;
                                 },
+                              ),
+                              const SizedBox(height: 15),
+
+                              // Manager Selection Autocomplete
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Text(
+                                        "Manager",
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      const Text(
+                                        "(Optional)",
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Autocomplete<User>(
+                                    optionsBuilder: (textEditingValue) async {
+                                      if (textEditingValue.text.isEmpty) {
+                                        return viewModel.users;
+                                      }
+                                      return await viewModel.searchUsers(
+                                        textEditingValue.text,
+                                      );
+                                    },
+                                    displayStringForOption: (user) =>
+                                        "${user.name} (${user.pin})",
+                                    onSelected: (user) {
+                                      viewModel.setSelectedManager(user);
+                                    },
+                                    fieldViewBuilder:
+                                        (
+                                          context,
+                                          textEditingController,
+                                          focusNode,
+                                          onFieldSubmitted,
+                                        ) {
+                                          // Sync the autocomplete controller with our managed controller
+                                          if (viewModel
+                                                  .managerSearchController
+                                                  .text
+                                                  .isNotEmpty &&
+                                              textEditingController
+                                                  .text
+                                                  .isEmpty) {
+                                            textEditingController.text =
+                                                viewModel
+                                                    .managerSearchController
+                                                    .text;
+                                          }
+                                          return TextField(
+                                            controller: textEditingController,
+                                            focusNode: focusNode,
+                                            decoration: InputDecoration(
+                                              hintText: "Search for a manager",
+                                              filled: true,
+                                              fillColor: Colors.grey[100],
+                                              border: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                                borderSide: BorderSide.none,
+                                              ),
+                                              contentPadding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 16,
+                                                    vertical: 12,
+                                                  ),
+                                              suffixIcon:
+                                                  viewModel.selectedManager !=
+                                                      null
+                                                  ? IconButton(
+                                                      icon: const Icon(
+                                                        Icons.clear,
+                                                      ),
+                                                      onPressed: () {
+                                                        viewModel
+                                                            .setSelectedManager(
+                                                              null,
+                                                            );
+                                                        textEditingController
+                                                            .clear();
+                                                      },
+                                                    )
+                                                  : const Icon(Icons.search),
+                                            ),
+                                          );
+                                        },
+                                    optionsViewBuilder:
+                                        (context, onSelected, options) {
+                                          return Align(
+                                            alignment: Alignment.topLeft,
+                                            child: Material(
+                                              elevation: 4,
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              child: Container(
+                                                constraints:
+                                                    const BoxConstraints(
+                                                      maxHeight: 200,
+                                                      maxWidth: 400,
+                                                    ),
+                                                child: ListView.builder(
+                                                  padding: EdgeInsets.zero,
+                                                  shrinkWrap: true,
+                                                  itemCount: options.length,
+                                                  itemBuilder: (context, index) {
+                                                    final user = options
+                                                        .elementAt(index);
+                                                    return ListTile(
+                                                      title: Text(
+                                                        user.name ?? '',
+                                                      ),
+                                                      subtitle: Text(
+                                                        "Role: ${user.role!.name ?? 'N/A'}",
+                                                      ),
+                                                      onTap: () {
+                                                        onSelected(user);
+                                                      },
+                                                    );
+                                                  },
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                  ),
+                                ],
                               ),
                               const SizedBox(height: 15),
 

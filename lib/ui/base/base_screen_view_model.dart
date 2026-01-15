@@ -109,7 +109,7 @@ class BaseScreenViewModel extends BaseViewModel {
     try {
       ApiResponse response = await userApi.getUsers(page: page);
       if (response.ok) {
-        debugPrint("body : ${response.body}");
+        // debugPrint("body : ${response.body}");
         List<User> users = (response.data as List)
             .map((e) => User.fromJson(e))
             .toList();
@@ -123,5 +123,26 @@ class BaseScreenViewModel extends BaseViewModel {
     }
 
     return {};
+  }
+
+  Future<bool> updateUserStatus(String userId, String status) async {
+    try {
+      ApiResponse response = await userApi.updateUserStatus(userId, status);
+      if (response.ok) {
+        appService.showMessage(
+          title: "Success",
+          message: "User status updated successfully",
+        );
+        return true;
+      } else {
+        appService.showMessage(message: response.message);
+        return false;
+      }
+    } on DioException catch (e) {
+      ApiResponse errorResponse = ApiResponse.parse(e.response);
+      debugPrint("error : ${errorResponse.body}");
+      appService.showMessage(message: errorResponse.message);
+      return false;
+    }
   }
 }

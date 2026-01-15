@@ -232,31 +232,53 @@ class LeaveView extends StackedView<LeaveViewModel> {
                             ),
                             Flexible(
                               flex: 1,
-                              child: Container(
-                                padding: const EdgeInsets.all(3),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(5),
+                              child: SizedBox(
+                                width: double.infinity,
+                                child: Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 5,
+                                      vertical: 3,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.all(
+                                        Radius.circular(5),
+                                      ),
+                                      color:
+                                          viewModel
+                                                  .leaveRequests[index]
+                                                  .status ==
+                                              "pending"
+                                          ? Colors.redAccent
+                                          : viewModel
+                                                    .leaveRequests[index]
+                                                    .status ==
+                                                "rejected"
+                                          ? Colors.red
+                                          : viewModel
+                                                    .leaveRequests[index]
+                                                    .status ==
+                                                "confirmed"
+                                          ? Colors.amber[700]
+                                          : Colors.green,
+                                    ),
+                                    child: Text(
+                                      viewModel.leaveRequests[index].status!
+                                          .toUpperCase(),
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 13,
+                                      ),
+                                    ),
                                   ),
-                                  color:
-                                      viewModel.leaveRequests[index].status ==
-                                          "pending"
-                                      ? Colors.redAccent
-                                      : viewModel.leaveRequests[index].status ==
-                                            "rejected"
-                                      ? Colors.red
-                                      : Colors.green,
-                                ),
-                                child: Text(
-                                  viewModel.leaveRequests[index].status!
-                                      .toUpperCase(),
-                                  style: TextStyle(color: Colors.white),
                                 ),
                               ),
                             ),
                             Flexible(
                               flex: 2,
                               child: SizedBox(
+                                width: double.infinity,
                                 child: Center(
                                   child: PopupMenuButton<String>(
                                     icon: Container(
