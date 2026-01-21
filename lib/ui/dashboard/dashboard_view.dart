@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:leave_desk/shared/loading.dart';
 import 'package:leave_desk/ui/dashboard/dashboard_view_model.dart';
 import 'package:leave_desk/ui/dashboard/widget/staff_info_view.dart';
 import 'package:stacked/stacked.dart';
@@ -14,7 +15,7 @@ class DashboardView extends StackedView<DashboardViewModel> {
 
   @override
   void onViewModelReady(DashboardViewModel viewModel) async {
-    //viewModel.init();
+    viewModel.getDashboard();
     super.onViewModelReady(viewModel);
   }
 
@@ -25,7 +26,9 @@ class DashboardView extends StackedView<DashboardViewModel> {
       height: double.infinity,
       margin: const EdgeInsets.symmetric(horizontal: 25),
       child: viewModel.appService.currentUser!.role!.name!.contains("admin")
-          ? SizedBox()
+          ? viewModel.busy("loading")
+                ? Center(child: Loading(title: "Fetching Data"))
+                : SizedBox()
           : StaffInfoView(user: viewModel.appService.currentUser!),
     );
   }

@@ -15,6 +15,7 @@ import 'package:leave_desk/ui/department/widget/department_members.dart';
 import 'package:leave_desk/ui/leave/leave_details_view.dart';
 import 'package:leave_desk/ui/leave/leave_request_view.dart';
 import 'package:leave_desk/ui/leave/leave_view.dart';
+import 'package:leave_desk/ui/retirement/retirement_view.dart';
 import 'package:leave_desk/ui/role/widget/add_role_view.dart';
 import 'package:leave_desk/ui/role/role_view.dart';
 import 'package:leave_desk/ui/staff/staff_view.dart';
@@ -74,7 +75,11 @@ class BaseScreenView extends StackedView<BaseScreenViewModel> {
                         color: AppColors.baseColor,
                         child: Navigator(
                           key: Utils.sideMenuNavigationKey,
-                          initialRoute: '/dashboard',
+                          initialRoute:
+                              viewModel.appService.currentUser!.role!.name!
+                                  .contains("admin")
+                              ? '/staff'
+                              : '/dashboard',
                           onGenerateRoute: ((settings) {
                             Widget page;
                             switch (settings.name) {
@@ -86,6 +91,9 @@ class BaseScreenView extends StackedView<BaseScreenViewModel> {
                                 break;
                               case '/roles':
                                 page = const RoleView();
+                                break;
+                              case '/retirement':
+                                page = const RetirementView();
                                 break;
                               case '/departments':
                                 page = const DepartmentView();
@@ -133,7 +141,7 @@ class BaseScreenView extends StackedView<BaseScreenViewModel> {
                                 page = AssignStaffDepartmentView(user: User());
                                 break;
                               default:
-                                page = const DashboardView();
+                                page = const StaffView();
                                 break;
                             }
                             return Utils.slideRightTransition(page);

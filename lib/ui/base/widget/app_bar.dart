@@ -38,9 +38,14 @@ class _AppBarWidgetState extends State<AppBarWidget> {
       appService.setSelectedBranch(appService.currentUser!.branches![0]);
     }
 
-    appService.controller.add(
-      NavigationItem("Dashbiard", "/dashboard", "main"),
-    );
+    if (appService.currentUser!.role!.name!.contains("admin")) {
+      appService.controller.add(NavigationItem("Staff", "/staff", "main"));
+    } else {
+      appService.controller.add(
+        NavigationItem("Dashboard", "/dashboard", "main"),
+      );
+    }
+
     super.initState();
   }
 

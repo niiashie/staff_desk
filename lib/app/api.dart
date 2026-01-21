@@ -23,4 +23,5 @@ class Api {
   static const String unassignManager = "/departments/unassign-manager";
   static const String leave = "/leaves";
   static const String leaveRequest = "/leave-requests";
+  static const String dashboard = "/dashboard";
 }

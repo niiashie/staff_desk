@@ -32,7 +32,6 @@ class BaseScreenViewModel extends BaseViewModel {
 
   populateAdminSideMenus() {
     labels = [
-      "Dashboard",
       "Staff",
       "Leave",
       "Branches",
