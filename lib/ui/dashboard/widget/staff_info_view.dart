@@ -804,10 +804,18 @@ class _StaffInfoViewState extends State<StaffInfoView> {
           ),
         ),
         if (onEdit != null)
-          IconButton(
-            icon: Icon(Icons.edit, color: color, size: 20),
-            onPressed: onEdit,
-            tooltip: 'Edit $title',
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onEdit,
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                width: 40,
+                height: 40,
+                alignment: Alignment.center,
+                child: Icon(Icons.edit, color: color, size: 20),
+              ),
+            ),
           ),
       ],
     );

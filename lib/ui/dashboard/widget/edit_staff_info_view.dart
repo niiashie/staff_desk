@@ -1,6 +1,11 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:leave_desk/api/user_api.dart';
+import 'package:leave_desk/app/locator.dart';
 import 'package:leave_desk/constants/colors.dart';
+import 'package:leave_desk/models/api_response.dart';
 import 'package:leave_desk/models/user.dart';
+import 'package:leave_desk/services/app_service.dart';
 import 'package:leave_desk/shared/custom_button.dart';
 import 'package:leave_desk/shared/custom_form_field.dart';
 
@@ -113,6 +118,8 @@ class EditStaffInfoView extends StatefulWidget {
 class _EditStaffInfoViewState extends State<EditStaffInfoView> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
+  final UserApi _userApi = UserApi();
+  final AppService _appService = locator<AppService>();
 
   String get _categoryTitle {
     switch (widget.category) {
@@ -243,6 +250,8 @@ class _EditStaffInfoViewState extends State<EditStaffInfoView> {
   // Bio Data Form
   final TextEditingController _surnameController = TextEditingController();
   final TextEditingController _otherNamesController = TextEditingController();
+  final TextEditingController _previousNamesController =
+      TextEditingController();
   final TextEditingController _dateOfBirthController = TextEditingController();
   final TextEditingController _nationalityController = TextEditingController();
   final TextEditingController _homeTownController = TextEditingController();
@@ -255,12 +264,17 @@ class _EditStaffInfoViewState extends State<EditStaffInfoView> {
       TextEditingController();
   final TextEditingController _houseNumberController = TextEditingController();
   final TextEditingController _streetNameController = TextEditingController();
+  final TextEditingController _nearestLandmarkController =
+      TextEditingController();
   final TextEditingController _postAddressController = TextEditingController();
   final TextEditingController _bankController = TextEditingController();
+  final TextEditingController _branchNameController = TextEditingController();
   final TextEditingController _accountNameController = TextEditingController();
   final TextEditingController _socialSecurityNumberController =
       TextEditingController();
   final TextEditingController _languagesSpokenController =
+      TextEditingController();
+  final TextEditingController _physicalDisabilityController =
       TextEditingController();
 
   @override
@@ -277,6 +291,7 @@ class _EditStaffInfoViewState extends State<EditStaffInfoView> {
       final bioData = widget.user!.bioData!;
       _surnameController.text = bioData.surname ?? '';
       _otherNamesController.text = bioData.otherNames ?? '';
+      _previousNamesController.text = bioData.previousNames ?? '';
       _dateOfBirthController.text = bioData.dateOfBirth ?? '';
       _nationalityController.text = bioData.nationality ?? '';
       _homeTownController.text = bioData.homeTown ?? '';
@@ -288,12 +303,15 @@ class _EditStaffInfoViewState extends State<EditStaffInfoView> {
       _digitalAddressController.text = bioData.digitalAddress ?? '';
       _houseNumberController.text = bioData.houseNumber ?? '';
       _streetNameController.text = bioData.streetName ?? '';
+      _nearestLandmarkController.text = bioData.nearestLandmark ?? '';
       _postAddressController.text = bioData.postAddress ?? '';
       _bankController.text = bioData.bank ?? '';
+      _branchNameController.text = bioData.branchName ?? '';
       _accountNameController.text = bioData.accountName ?? '';
       _socialSecurityNumberController.text = bioData.socialSecurityNumber ?? '';
       _languagesSpokenController.text =
           bioData.languagesSpoken?.join(', ') ?? '';
+      _physicalDisabilityController.text = bioData.physicalDisability ?? '';
     } else if (widget.category == EditCategory.employmentRecord &&
         widget.user!.employmentRecord != null) {
       final employment = widget.user!.employmentRecord!;
@@ -425,29 +443,37 @@ class _EditStaffInfoViewState extends State<EditStaffInfoView> {
           ),
         ),
         _buildTwoColumnRow(
+          _buildFormField('Previous Names', _previousNamesController),
           _buildFormField(
             'Date of Birth',
             _dateOfBirthController,
             validator: _validateRequired,
             hint: 'YYYY-MM-DD',
           ),
+        ),
+        _buildTwoColumnRow(
           _buildFormField(
             'Gender',
             _genderController,
             validator: _validateRequired,
           ),
-        ),
-        _buildTwoColumnRow(
           _buildFormField(
             'Nationality',
             _nationalityController,
             validator: _validateRequired,
           ),
-          _buildFormField('Home Town', _homeTownController),
         ),
         _buildTwoColumnRow(
-          _buildFormField('Region', _regionController),
-          SizedBox(),
+          _buildFormField(
+            'Home Town',
+            _homeTownController,
+            validator: _validateRequired,
+          ),
+          _buildFormField(
+            'Region',
+            _regionController,
+            validator: _validateRequired,
+          ),
         ),
         SizedBox(height: 20),
         _buildSectionHeader('Contact Information', Icons.contact_mail),
@@ -472,21 +498,34 @@ class _EditStaffInfoViewState extends State<EditStaffInfoView> {
           _buildFormField('Street Name', _streetNameController),
         ),
         _buildTwoColumnRow(
+          _buildFormField('Nearest Landmark', _nearestLandmarkController),
           _buildFormField('Post Address', _postAddressController),
-          SizedBox(),
         ),
         SizedBox(height: 20),
         _buildSectionHeader('Banking Information', Icons.account_balance),
         _buildTwoColumnRow(
-          _buildFormField('Bank', _bankController),
-          _buildFormField('Account Name', _accountNameController),
+          _buildFormField(
+            'Bank',
+            _bankController,
+            validator: _validateRequired,
+          ),
+          _buildFormField(
+            'Branch Name',
+            _branchNameController,
+            validator: _validateRequired,
+          ),
         ),
         _buildTwoColumnRow(
           _buildFormField(
+            'Account Name',
+            _accountNameController,
+            validator: _validateRequired,
+          ),
+          _buildFormField(
             'Social Security Number',
             _socialSecurityNumberController,
+            validator: _validateRequired,
           ),
-          SizedBox(),
         ),
         SizedBox(height: 20),
         _buildSectionHeader('Other Information', Icons.info_outline),
@@ -494,8 +533,13 @@ class _EditStaffInfoViewState extends State<EditStaffInfoView> {
           _buildFormField(
             'Languages Spoken (comma separated)',
             _languagesSpokenController,
+            validator: _validateRequired,
           ),
-          SizedBox(),
+          _buildFormField(
+            'Physical Disability',
+            _physicalDisabilityController,
+            validator: _validateRequired,
+          ),
         ),
       ],
     );
@@ -1324,6 +1368,29 @@ class _EditStaffInfoViewState extends State<EditStaffInfoView> {
     return null;
   }
 
+  Future<void> _refreshUserData() async {
+    try {
+      ApiResponse response = await _userApi.refresh();
+      if (response.ok) {
+        // Preserve the existing token
+        String? existingToken = _appService.currentUser?.accessToken;
+        String? existingTokenType = _appService.currentUser?.tokenType;
+
+        User user = User.fromJson(response.data);
+
+        // Restore the token
+        user.accessToken = existingToken;
+        user.tokenType = existingTokenType;
+
+        _appService.currentUser = user;
+        debugPrint("User data refreshed successfully");
+      }
+    } on DioException catch (e) {
+      debugPrint("Error refreshing user data: ${e.response?.data}");
+      // Don't show error to user, just log it
+    }
+  }
+
   Future<void> _handleSubmit() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -1334,30 +1401,61 @@ class _EditStaffInfoViewState extends State<EditStaffInfoView> {
     });
 
     try {
-      // TODO: Implement API call based on category
-      // final postData = _getPostData();
-      // debugPrint('Post data: $postData');
+      final postData = _getPostData();
 
-      // Simulate API call
-      await Future.delayed(Duration(seconds: 2));
+      ApiResponse response;
+
+      // Call the appropriate API based on category
+      switch (widget.category) {
+        case EditCategory.bioData:
+          response = await _userApi.updateBioData2(postData);
+          break;
+        case EditCategory.employmentRecord:
+          response = await _userApi.updateEmploymentData(postData);
+          break;
+        case EditCategory.familyData:
+          response = await _userApi.updateFamilyData(postData);
+          break;
+        case EditCategory.educationTraining:
+          response = await _userApi.updateEducationTraining(postData);
+          break;
+        case EditCategory.emergencyContacts:
+          response = await _userApi.updateEmergencyContact(postData);
+          break;
+        case EditCategory.beneficiaries:
+          response = await _userApi.updateBeneficiary(postData);
+          break;
+        case EditCategory.referees:
+          response = await _userApi.updateReferee(postData);
+          break;
+        default:
+          throw Exception('Unknown category');
+      }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Information updated successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.pop(context, true); // Return true to indicate success
+        if (response.ok) {
+          // Refresh user data to get the updated information
+          await _refreshUserData();
+
+          _appService.showMessage(
+            title: "Success",
+            message: "Information updated successfully!",
+          );
+          Navigator.pop(context, true); // Return true to indicate success
+        } else {
+          _appService.showMessage(message: response.message);
+        }
+      }
+    } on DioException catch (e) {
+      debugPrint("error : ${e.response?.data}");
+      if (mounted) {
+        ApiResponse errorResponse = ApiResponse.parse(e.response);
+        _appService.showMessage(message: errorResponse.message);
       }
     } catch (e) {
+      debugPrint("error : $e");
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to update information: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        _appService.showMessage(message: "Failed to update information: $e");
       }
     } finally {
       if (mounted) {
@@ -1374,6 +1472,7 @@ class _EditStaffInfoViewState extends State<EditStaffInfoView> {
         return {
           'surname': _surnameController.text,
           'other_names': _otherNamesController.text,
+          'previous_names': _previousNamesController.text,
           'date_of_birth': _dateOfBirthController.text,
           'nationality': _nationalityController.text,
           'home_town': _homeTownController.text,
@@ -1385,11 +1484,14 @@ class _EditStaffInfoViewState extends State<EditStaffInfoView> {
           'digital_address': _digitalAddressController.text,
           'house_number': _houseNumberController.text,
           'street_name': _streetNameController.text,
+          'nearest_landmark': _nearestLandmarkController.text,
           'post_address': _postAddressController.text,
           'bank': _bankController.text,
+          'branch_name': _branchNameController.text,
           'account_name': _accountNameController.text,
           'social_security_number': _socialSecurityNumberController.text,
           'languages_spoken': _languagesSpokenController.text,
+          'physical_disability': _physicalDisabilityController.text,
         };
       case EditCategory.employmentRecord:
         return {
@@ -1484,6 +1586,7 @@ class _EditStaffInfoViewState extends State<EditStaffInfoView> {
     // Dispose all controllers
     _surnameController.dispose();
     _otherNamesController.dispose();
+    _previousNamesController.dispose();
     _dateOfBirthController.dispose();
     _nationalityController.dispose();
     _homeTownController.dispose();
@@ -1495,11 +1598,14 @@ class _EditStaffInfoViewState extends State<EditStaffInfoView> {
     _digitalAddressController.dispose();
     _houseNumberController.dispose();
     _streetNameController.dispose();
+    _nearestLandmarkController.dispose();
     _postAddressController.dispose();
     _bankController.dispose();
+    _branchNameController.dispose();
     _accountNameController.dispose();
     _socialSecurityNumberController.dispose();
     _languagesSpokenController.dispose();
+    _physicalDisabilityController.dispose();
     _presentJobTitleController.dispose();
     _employmentStatusController.dispose();
     _dateOfEmploymentController.dispose();

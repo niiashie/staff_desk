@@ -17,6 +17,11 @@ class UserApi extends BaseApi {
     return ApiResponse.parse(response);
   }
 
+  Future<ApiResponse> updateBioData2(Map<String, dynamic> params) async {
+    var response = await put(url: Api.bioData, data: params);
+    return ApiResponse.parse(response);
+  }
+
   Future<FormData> _prepareFormData(Map<String, dynamic> params) async {
     Map<String, dynamic> formDataMap = {};
 
@@ -118,6 +123,11 @@ class UserApi extends BaseApi {
 
   Future<ApiResponse> getRoles() async {
     var response = await get(url: Api.role);
+    return ApiResponse.parse(response);
+  }
+
+  Future<ApiResponse> refresh() async {
+    var response = await get(url: Api.me);
     return ApiResponse.parse(response);
   }
 

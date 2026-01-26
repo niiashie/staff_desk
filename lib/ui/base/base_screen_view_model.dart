@@ -144,4 +144,34 @@ class BaseScreenViewModel extends BaseViewModel {
       return false;
     }
   }
+
+  Future<User?> refreshUserData() async {
+    try {
+      ApiResponse response = await userApi.refresh();
+      if (response.ok) {
+        // Preserve the existing token
+        String? existingToken = appService.currentUser?.accessToken;
+        String? existingTokenType = appService.currentUser?.tokenType;
+
+        User user = User.fromJson(response.data);
+
+        // Restore the token
+        user.accessToken = existingToken;
+        user.tokenType = existingTokenType;
+
+        // Update the current user in app service
+        appService.currentUser = user;
+        debugPrint("User data refreshed successfully");
+        return user;
+      } else {
+        appService.showMessage(message: response.message);
+        return null;
+      }
+    } on DioException catch (e) {
+      ApiResponse errorResponse = ApiResponse.parse(e.response);
+      debugPrint("error refreshing user data: ${errorResponse.body}");
+      appService.showMessage(message: errorResponse.message);
+      return null;
+    }
+  }
 }

@@ -24,4 +24,5 @@ class Api {
   static const String leave = "/leaves";
   static const String leaveRequest = "/leave-requests";
   static const String dashboard = "/dashboard";
+  static const String me = "/me";
 }
