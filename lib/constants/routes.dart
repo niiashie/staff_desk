@@ -5,4 +5,5 @@ class Routes {
   static const String userInfo = "userInfo";
   static const String userInfoMobile = "userInfoMobile";
   static const String base = 'base';
+  static const String mobileBase = 'mobileBase';
 }

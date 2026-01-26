@@ -51,7 +51,9 @@ class AuthenticationViewModel extends BaseViewModel {
               Navigator.of(
                 // ignore: use_build_context_synchronously
                 context,
-              ).pushReplacementNamed(Routes.base);
+              ).pushReplacementNamed(
+                isMobile ? Routes.mobileBase : Routes.base,
+              );
             }
           } else {
             Navigator.of(

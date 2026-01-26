@@ -31,6 +31,10 @@ class LeaveViewModel extends BaseScreenViewModel {
   List<User> availableUsers = [];
   List<LeaveRequest> leaveRequests = [];
 
+  // Infinite scroll support
+  bool isLoadingMore = false;
+  bool hasMoreData = true;
+
   @override
   void init() async {
     await fetchUser();
@@ -49,6 +53,28 @@ class LeaveViewModel extends BaseScreenViewModel {
       await fetchLeaveRequests();
     } else {
       await fetchUserLeaveRequests();
+    }
+  }
+
+  // For infinite scroll - load more data
+  Future<void> loadMoreLeaveData() async {
+    if (isLoadingMore || !hasMoreData || currentPage >= totalUserPages) {
+      return;
+    }
+
+    isLoadingMore = true;
+    rebuildUi();
+
+    try {
+      currentPage++;
+      if (appService.currentUser!.role!.name!.contains("admin")) {
+        await fetchLeaveRequestsMore(page: currentPage);
+      } else {
+        await fetchUserLeaveRequestsMore(page: currentPage);
+      }
+    } finally {
+      isLoadingMore = false;
+      rebuildUi();
     }
   }
 
@@ -80,6 +106,7 @@ class LeaveViewModel extends BaseScreenViewModel {
             .map((e) => LeaveRequest.fromJson(e))
             .toList();
         totalUserPages = response.totalPages!;
+        hasMoreData = currentPage < totalUserPages;
         rebuildUi();
         setBusyForObject("loading", false);
       }
@@ -105,10 +132,52 @@ class LeaveViewModel extends BaseScreenViewModel {
             .toList();
 
         totalUserPages = response.totalPages!;
+        hasMoreData = currentPage < totalUserPages;
         setBusyForObject("loading", false);
       }
     } on DioException catch (e) {
       setBusyForObject("loading", false);
+      debugPrint("error response : ${e.response}");
+      ApiResponse errorResponse = ApiResponse.parse(e.response);
+      appService.showMessage(message: errorResponse.message);
+    }
+  }
+
+  // Fetch more leave requests for infinite scroll (admin)
+  Future<void> fetchLeaveRequestsMore({int? page = 1}) async {
+    try {
+      ApiResponse response = await userApi.getLeaveRequests(page: page);
+      if (response.ok) {
+        List<LeaveRequest> newRequests = (response.data as List)
+            .map((e) => LeaveRequest.fromJson(e))
+            .toList();
+        leaveRequests.addAll(newRequests);
+        totalUserPages = response.totalPages!;
+        hasMoreData = currentPage < totalUserPages;
+      }
+    } on DioException catch (e) {
+      debugPrint("error response : ${e.response}");
+      ApiResponse errorResponse = ApiResponse.parse(e.response);
+      appService.showMessage(message: errorResponse.message);
+    }
+  }
+
+  // Fetch more user leave requests for infinite scroll
+  Future<void> fetchUserLeaveRequestsMore({int? page = 1}) async {
+    try {
+      ApiResponse response = await userApi.getUserLeaveRequests(
+        appService.currentUser!.id.toString(),
+        page: page,
+      );
+      if (response.ok) {
+        List<LeaveRequest> newRequests = (response.data as List)
+            .map((e) => LeaveRequest.fromJson(e))
+            .toList();
+        leaveRequests.addAll(newRequests);
+        totalUserPages = response.totalPages!;
+        hasMoreData = currentPage < totalUserPages;
+      }
+    } on DioException catch (e) {
       debugPrint("error response : ${e.response}");
       ApiResponse errorResponse = ApiResponse.parse(e.response);
       appService.showMessage(message: errorResponse.message);

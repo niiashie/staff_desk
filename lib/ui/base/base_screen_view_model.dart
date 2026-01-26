@@ -41,7 +41,6 @@ class BaseScreenViewModel extends BaseViewModel {
     ];
 
     icons = [
-      AppImages.dashboard,
       AppImages.staff,
       AppImages.leave,
       AppImages.branch,

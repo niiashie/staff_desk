@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:leave_desk/ui/auth/login_view.dart';
 import 'package:leave_desk/ui/auth/registration_view.dart';
 import 'package:leave_desk/ui/base/base_screen_view.dart';
+import 'package:leave_desk/ui/base/mobile_base_screen_view.dart';
 import 'package:leave_desk/ui/user_info/user_info_view.dart';
 import 'package:leave_desk/ui/user_info/user_info_mobile_view.dart';
 import 'package:leave_desk/utils.dart';
@@ -20,6 +21,8 @@ class AppRouter {
         return Utils.slideRightTransition(const UserInfoMobileView());
       case Routes.base:
         return Utils.slideRightTransition(const BaseScreenView());
+      case Routes.mobileBase:
+        return Utils.slideRightTransition(const MobileBaseScreenView());
       default:
         return MaterialPageRoute(builder: (context) => const LoginView());
     }

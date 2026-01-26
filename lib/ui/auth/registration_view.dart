@@ -27,6 +27,9 @@ class RegistrationView extends StackedView<AuthenticationViewModel> {
 
   @override
   Widget builder(BuildContext context, viewModel, Widget? child) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -48,39 +51,46 @@ class RegistrationView extends StackedView<AuthenticationViewModel> {
               child: Form(
                 key: viewModel.registrationFormKey,
                 child: Container(
-                  width: 450,
-                  padding: const EdgeInsets.only(top: 5, bottom: 5),
+                  width: isMobile ? screenWidth : 450,
+                  padding: EdgeInsets.only(
+                    top: isMobile ? 0 : 5,
+                    bottom: isMobile ? 0 : 5,
+                    left: isMobile ? 16 : 0,
+                    right: isMobile ? 16 : 0,
+                  ),
                   child: Card(
                     color: Colors.white,
-                    elevation: 1,
+                    elevation: isMobile ? 0 : 1,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(isMobile ? 0 : 10),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(15),
+                      padding: EdgeInsets.all(isMobile ? 20 : 15),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           AppLogo(),
-                          const Text(
+                          Text(
                             "Staff Records And Leave Management System",
+                            textAlign: TextAlign.center,
                             style: TextStyle(
                               color: AppColors.lightTextColor,
-                              fontSize: AppfontSizes.small,
+                              fontSize: isMobile ? 12 : AppfontSizes.small,
                             ),
                           ),
-                          const Text(
+                          Text(
                             "Provide the details below to create an account",
+                            textAlign: TextAlign.center,
                             style: TextStyle(
                               color: AppColors.lightTextColor,
-                              fontSize: AppfontSizes.small,
+                              fontSize: isMobile ? 12 : AppfontSizes.small,
                             ),
                           ),
                           AppSpaces.largeVerticalHeight,
-                          const Padding(
-                            padding: EdgeInsets.only(left: 25),
-                            child: SizedBox(
+                          Padding(
+                            padding: EdgeInsets.only(left: isMobile ? 5 : 25),
+                            child: const SizedBox(
                               width: double.infinity,
                               child: Align(
                                 alignment: Alignment.centerLeft,
@@ -96,7 +106,10 @@ class RegistrationView extends StackedView<AuthenticationViewModel> {
                           ),
                           AppSpaces.verySmallVerticalHeight,
                           Padding(
-                            padding: const EdgeInsets.only(left: 20, right: 20),
+                            padding: EdgeInsets.only(
+                              left: isMobile ? 0 : 20,
+                              right: isMobile ? 0 : 20,
+                            ),
                             child: CustomFormField(
                               hintText: "Enter your name",
                               filled: true,
@@ -120,9 +133,9 @@ class RegistrationView extends StackedView<AuthenticationViewModel> {
                             ),
                           ),
                           AppSpaces.verySmallVerticalHeight,
-                          const Padding(
-                            padding: EdgeInsets.only(left: 25),
-                            child: SizedBox(
+                          Padding(
+                            padding: EdgeInsets.only(left: isMobile ? 5 : 25),
+                            child: const SizedBox(
                               width: double.infinity,
                               child: Align(
                                 alignment: Alignment.centerLeft,
@@ -138,7 +151,10 @@ class RegistrationView extends StackedView<AuthenticationViewModel> {
                           ),
                           AppSpaces.verySmallVerticalHeight,
                           Padding(
-                            padding: const EdgeInsets.only(left: 20, right: 20),
+                            padding: EdgeInsets.only(
+                              left: isMobile ? 0 : 20,
+                              right: isMobile ? 0 : 20,
+                            ),
                             child: CustomFormField(
                               hintText: "Enter your PIN",
                               filled: true,
@@ -165,9 +181,9 @@ class RegistrationView extends StackedView<AuthenticationViewModel> {
                             ),
                           ),
                           AppSpaces.verySmallVerticalHeight,
-                          const Padding(
-                            padding: EdgeInsets.only(left: 25),
-                            child: SizedBox(
+                          Padding(
+                            padding: EdgeInsets.only(left: isMobile ? 5 : 25),
+                            child: const SizedBox(
                               width: double.infinity,
                               child: Align(
                                 alignment: Alignment.centerLeft,
@@ -183,7 +199,10 @@ class RegistrationView extends StackedView<AuthenticationViewModel> {
                           ),
                           AppSpaces.verySmallVerticalHeight,
                           Padding(
-                            padding: const EdgeInsets.only(left: 20, right: 20),
+                            padding: EdgeInsets.only(
+                              left: isMobile ? 0 : 20,
+                              right: isMobile ? 0 : 20,
+                            ),
                             child: CustomFormField(
                               hintText: "Enter password...",
                               contentPadding: 0,
@@ -209,9 +228,9 @@ class RegistrationView extends StackedView<AuthenticationViewModel> {
                             ),
                           ),
                           AppSpaces.verySmallVerticalHeight,
-                          const Padding(
-                            padding: EdgeInsets.only(left: 25),
-                            child: SizedBox(
+                          Padding(
+                            padding: EdgeInsets.only(left: isMobile ? 5 : 25),
+                            child: const SizedBox(
                               width: double.infinity,
                               child: Align(
                                 alignment: Alignment.centerLeft,
@@ -227,7 +246,10 @@ class RegistrationView extends StackedView<AuthenticationViewModel> {
                           ),
                           AppSpaces.verySmallVerticalHeight,
                           Padding(
-                            padding: const EdgeInsets.only(left: 20, right: 20),
+                            padding: EdgeInsets.only(
+                              left: isMobile ? 0 : 20,
+                              right: isMobile ? 0 : 20,
+                            ),
                             child: CustomFormField(
                               hintText: "Confirm your password",
                               contentPadding: 0,
@@ -254,7 +276,10 @@ class RegistrationView extends StackedView<AuthenticationViewModel> {
                           ),
                           AppSpaces.mediumVerticalHeight,
                           Padding(
-                            padding: const EdgeInsets.only(left: 20, right: 20),
+                            padding: EdgeInsets.only(
+                              left: isMobile ? 0 : 20,
+                              right: isMobile ? 0 : 20,
+                            ),
                             child: CustomButton(
                               width: double.infinity,
                               maxWidth: double.infinity,
@@ -277,10 +302,11 @@ class RegistrationView extends StackedView<AuthenticationViewModel> {
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              const Text(
+                              Text(
                                 "Already having an account ?",
                                 style: TextStyle(
                                   color: AppColors.lightTextColor,
+                                  fontSize: isMobile ? 12 : 14,
                                 ),
                               ),
                               const SizedBox(width: 10),
@@ -288,11 +314,12 @@ class RegistrationView extends StackedView<AuthenticationViewModel> {
                                 onTap: () {
                                   Navigator.of(context).pop();
                                 },
-                                child: const Text(
+                                child: Text(
                                   "Login",
                                   style: TextStyle(
                                     color: AppColors.primaryColor,
                                     fontWeight: FontWeight.w600,
+                                    fontSize: isMobile ? 12 : 14,
                                   ),
                                 ),
                               ),
